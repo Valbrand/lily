@@ -6,6 +6,7 @@ import * as handlers from "../../eventHandlers";
 import { vscodeTextEditor } from "./textEditor";
 import { handleReplaceTextEffect } from "./effects/replaceText";
 import { handleShowErrorEffect } from "./effects/showError";
+import { pipe, whenDefined } from "../../utils";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -24,12 +25,12 @@ export function activate(context: vscode.ExtensionContext) {
   );
 
   if (vscode.window.activeTextEditor) {
-    const activeTextEditor = vscodeTextEditor(vscode.window.activeTextEditor);
-    const handleInitialActiveTextEditor = makeEffectHandler(
-      handlers.handleInitialActiveTextEditor
+    const handleInitialActiveTextEditor = pipe(
+      vscodeTextEditor,
+      makeEffectHandler(handlers.handleInitialActiveTextEditor)
     );
 
-    handleInitialActiveTextEditor(activeTextEditor);
+    handleInitialActiveTextEditor(vscode.window.activeTextEditor);
   }
 
   // The command has been defined in the package.json file
@@ -43,9 +44,17 @@ export function activate(context: vscode.ExtensionContext) {
     })
   );
 
-  // const onTextEditorChangeDisposable = vscode.window.onDidChangeActiveTextEditor(editor => {
-  // 	console.log('active text editor changed');
-  // })
+  deferDisposal(
+    context,
+    vscode.window.onDidChangeActiveTextEditor(
+      whenDefined(
+        pipe(
+          vscodeTextEditor,
+          makeEffectHandler(handlers.handleActiveTextEditorChange)
+        )
+      )
+    )
+  );
 
   deferDisposal(
     context,

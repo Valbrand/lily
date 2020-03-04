@@ -11,3 +11,10 @@ export function handleInitialActiveTextEditor({
 }: EventHandlerContext<TextEditor>): EffectExecutionPlan {
   return performInitialTreatment(editor, parinferEngine);
 }
+
+export function handleActiveTextEditorChange({
+  payload: editor,
+  parinferEngine
+}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
+  return performInitialTreatment(editor, parinferEngine);
+}

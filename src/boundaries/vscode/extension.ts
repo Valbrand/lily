@@ -58,8 +58,13 @@ export function activate(context: vscode.ExtensionContext) {
 
   deferDisposal(
     context,
-    vscode.window.onDidChangeTextEditorSelection(evt => {
-      dispatch("test", "text editor selection changed");
+    vscode.window.onDidChangeTextEditorSelection(event => {
+      const selectionChangeHandler = pipe(
+        vscodeTextEditor,
+        makeEffectHandler(handlers.handleSelectionChange)
+      );
+
+      selectionChangeHandler(event.textEditor);
     })
   );
 

@@ -1,15 +1,24 @@
 import performInitialTreatment from "./initialTreatment";
-import { TextEditor, TextDocument } from "../textEditor";
 import { ParinferEngine } from "../parinfer";
+import { mockObject } from "../testUtils";
+import { TextEditor, TextDocument } from "../textEditor";
 
 describe("performInitialTreatment", () => {
   test("returns a replaceTextEffect with valid input", () => {
-    const parinfer = mockParinferEngine({
-      parenMode: jest
-        .fn()
-        .mockReturnValue({ success: true, text: "replace-with-this" })
+    const parinfer = mockObject<ParinferEngine>({
+      parenMode: jest.fn().mockReturnValue({
+        success: true,
+        text: "replace-with-this"
+      })
     });
-    const textEditor = mockTextEditor();
+    const textEditor = mockObject<TextEditor>({
+      document: jest.fn().mockReturnValue(
+        mockObject<TextDocument>({
+          text: jest.fn().mockReturnValue("irrelevant"),
+          isSupported: jest.fn().mockReturnValue(true)
+        })
+      )
+    });
 
     expect(performInitialTreatment(textEditor, parinfer)).toEqual({
       replaceText: {
@@ -20,65 +29,34 @@ describe("performInitialTreatment", () => {
   });
 
   test("unsupported files are ignored", () => {
-    const parinfer = mockParinferEngine();
-    const textEditor = mockTextEditor({
-      document: jest
-        .fn()
-        .mockReturnValue(
-          mockTextDocument({ isSupported: jest.fn().mockReturnValue(false) })
-        )
+    const parinfer = mockObject<ParinferEngine>();
+    const textEditor = mockObject<TextEditor>({
+      document: jest.fn().mockReturnValue(
+        mockObject<TextDocument>({
+          isSupported: jest.fn().mockReturnValue(false)
+        })
+      )
     });
 
     expect(performInitialTreatment(textEditor, parinfer)).toEqual({});
   });
 
   test("invalid inputs result in an error exhibition effect", () => {
-    const parinfer = mockParinferEngine({
+    const parinfer = mockObject<ParinferEngine>({
       parenMode: jest.fn().mockReturnValue({ success: false })
     });
-    const textEditor = mockTextEditor();
+    const textEditor = mockObject<TextEditor>({
+      document: jest.fn().mockReturnValue(
+        mockObject<TextDocument>({
+          isSupported: jest.fn().mockReturnValue(true),
+          fileName: jest.fn().mockReturnValue("file-name"),
+          text: jest.fn().mockReturnValue("document-text")
+        })
+      )
+    });
 
     expect(performInitialTreatment(textEditor, parinfer)).toEqual({
       showError: expect.anything()
     });
   });
 });
-
-function mockParinferEngine(
-  overrides: Partial<ParinferEngine> = {}
-): ParinferEngine {
-  const baseParinferEngine: ParinferEngine = {
-    parenMode: jest.fn()
-  };
-
-  return {
-    ...baseParinferEngine,
-    ...overrides
-  };
-}
-
-function mockTextDocument(overrides: Partial<TextDocument> = {}): TextDocument {
-  const baseMockDocument: TextDocument = {
-    isSupported: jest.fn().mockReturnValue(true),
-    fileName: jest.fn(),
-    text: jest.fn()
-  };
-
-  return {
-    ...baseMockDocument,
-    ...overrides
-  };
-}
-
-function mockTextEditor(overrides: Partial<TextEditor> = {}): TextEditor {
-  const baseMockEditor: TextEditor = {
-    document: jest.fn().mockReturnValue(mockTextDocument()),
-
-    _rawEditor: "irrelevant"
-  };
-
-  return {
-    ...baseMockEditor,
-    ...overrides
-  };
-}

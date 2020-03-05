@@ -4,6 +4,7 @@ import {
 } from "./eventLoop/eventLoop";
 import performInitialTreatment from "./controllers/initialTreatment";
 import { TextEditor } from "./textEditor";
+import fixFileChanges from "./controllers/fileChanges";
 
 export function handleInitialActiveTextEditor({
   payload: editor,
@@ -17,4 +18,11 @@ export function handleActiveTextEditorChange({
   parinferEngine
 }: EventHandlerContext<TextEditor>): EffectExecutionPlan {
   return performInitialTreatment(editor, parinferEngine);
+}
+
+export function handleSelectionChange({
+  payload: editor,
+  parinferEngine
+}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
+  return fixFileChanges(editor, parinferEngine);
 }

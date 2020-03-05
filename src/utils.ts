@@ -14,3 +14,7 @@ export function whenDefined<In>(
     }
   };
 }
+
+export function prop<T, P extends keyof T>(prop: P): (obj: T) => T[P] {
+  return (inputObject: T) => inputObject[prop];
+}

@@ -8,7 +8,11 @@ describe("fixFileChanges", () => {
     const parinfer = mockObject<ParinferEngine>({
       indentMode: () => ({
         success: true,
-        text: "text-after-indent-mode"
+        text: "text-after-indent-mode",
+        cursorPosition: {
+          line: 1,
+          column: 2
+        }
       })
     });
     const mockEditor = mockObject<TextEditor>({
@@ -16,13 +20,22 @@ describe("fixFileChanges", () => {
         mockObject<TextDocument>({
           text: () => "text-before-indent-mode",
           isSupported: () => true
-        })
+        }),
+      cursorPosition: () => ({ line: 0, column: 0 }),
+      currentSelection: () => ({
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      })
     });
 
     expect(fixFileChanges(mockEditor, parinfer)).toEqual({
       replaceText: {
         text: "text-after-indent-mode",
-        editor: mockEditor
+        editor: mockEditor,
+        cursorPosition: {
+          line: 1,
+          column: 2
+        }
       }
     });
   });

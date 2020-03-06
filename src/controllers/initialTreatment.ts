@@ -9,11 +9,19 @@ function fixDocumentAlignment(
   parinfer: ParinferEngine
 ): EffectExecutionPlan {
   const document = editor.document();
-  const parenRunResult = parinfer.parenMode(document.text());
+  const parenRunResult = parinfer.parenMode(
+    document.text(),
+    editor.cursorPosition(),
+    editor.currentSelection()
+  );
 
   return parenRunResult.success
     ? {
-        replaceText: replaceTextEffect(editor, parenRunResult.text)
+        replaceText: replaceTextEffect(
+          editor,
+          parenRunResult.text,
+          parenRunResult.cursorPosition
+        )
       }
     : {
         showError: showErrorEffect(

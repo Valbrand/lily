@@ -26,3 +26,10 @@ export function handleSelectionChange({
 }: EventHandlerContext<TextEditor>): EffectExecutionPlan {
   return fixFileChanges(editor, parinferEngine);
 }
+
+export function handleTextDocumentChange({
+  payload: editor,
+  parinferEngine
+}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
+  return fixFileChanges(editor, parinferEngine);
+}

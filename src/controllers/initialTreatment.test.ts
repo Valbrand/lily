@@ -6,24 +6,36 @@ import { TextEditor, TextDocument } from "../textEditor";
 describe("performInitialTreatment", () => {
   test("returns a replaceTextEffect with valid input", () => {
     const parinfer = mockObject<ParinferEngine>({
-      parenMode: jest.fn().mockReturnValue({
+      parenMode: () => ({
         success: true,
-        text: "replace-with-this"
+        text: "replace-with-this",
+        cursorPosition: {
+          line: 1,
+          column: 2
+        }
       })
     });
     const textEditor = mockObject<TextEditor>({
-      document: jest.fn().mockReturnValue(
+      document: () =>
         mockObject<TextDocument>({
-          text: jest.fn().mockReturnValue("irrelevant"),
-          isSupported: jest.fn().mockReturnValue(true)
-        })
-      )
+          text: () => "irrelevant",
+          isSupported: () => true
+        }),
+      cursorPosition: () => ({ line: 0, column: 0 }),
+      currentSelection: () => ({
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      })
     });
 
     expect(performInitialTreatment(textEditor, parinfer)).toEqual({
       replaceText: {
         text: "replace-with-this",
-        editor: textEditor
+        editor: textEditor,
+        cursorPosition: {
+          line: 1,
+          column: 2
+        }
       }
     });
   });
@@ -46,13 +58,17 @@ describe("performInitialTreatment", () => {
       parenMode: jest.fn().mockReturnValue({ success: false })
     });
     const textEditor = mockObject<TextEditor>({
-      document: jest.fn().mockReturnValue(
+      document: () =>
         mockObject<TextDocument>({
-          isSupported: jest.fn().mockReturnValue(true),
-          fileName: jest.fn().mockReturnValue("file-name"),
-          text: jest.fn().mockReturnValue("document-text")
-        })
-      )
+          isSupported: () => true,
+          fileName: () => "file-name",
+          text: () => "document-text"
+        }),
+      cursorPosition: () => ({ line: 0, column: 0 }),
+      currentSelection: () => ({
+        start: { line: 0, column: 0 },
+        end: { line: 0, column: 0 }
+      })
     });
 
     expect(performInitialTreatment(textEditor, parinfer)).toEqual({

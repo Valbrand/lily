@@ -30,3 +30,134 @@ describe("whenDefined", () => {
     expect(innerFn.mock.calls.length).toBe(0);
   });
 });
+
+describe("when function", () => {
+  const innerFn = jest.fn().mockReturnValue("return from innerFn");
+
+  test("runs argument function when predicate returns true", () => {
+    const predicate = jest.fn().mockReturnValue(true);
+    const subject = utils.when(predicate, innerFn);
+
+    expect(subject("input to when")).toBe("return from innerFn");
+    expect(predicate).toHaveBeenCalledWith("input to when");
+    expect(innerFn).toHaveBeenCalledWith("input to when");
+  });
+
+  test("skips argument function when predicate returns false", () => {
+    const predicate = jest.fn().mockReturnValue(false);
+    const subject = utils.when(predicate, innerFn);
+
+    expect(subject("input to when")).toBe(undefined);
+    expect(predicate).toHaveBeenCalledWith("input to when");
+    expect(innerFn).not.toHaveBeenCalled();
+  });
+});
+
+describe("prop returns a getter for a property in a given object", () => {
+  const propGetter = utils.prop<{ foo: any }>("foo");
+
+  test("in an object that contains the property key", () => {
+    const object = { foo: "bar" };
+
+    expect(propGetter(object)).toBe("bar");
+  });
+
+  test("in an object that does not contain the property key", () => {
+    const unknownInput: unknown = { baz: "qux" };
+
+    expect(propGetter(unknownInput as { foo: any })).toBe(undefined);
+  });
+});
+
+describe("constantFn", () => {
+  test("returns a constant function", () => {
+    const constant = utils.constantFn("constant return value");
+
+    expect(constant()).toBe("constant return value");
+    expect(constant("one arg")).toBe("constant return value");
+    expect(constant("multiple", "arguments")).toBe("constant return value");
+  });
+});
+
+describe("identity", () => {
+  test("returns given argument", () => {
+    expect(utils.identity("argument")).toBe("argument");
+  });
+
+  test("no copy of the argument is made", () => {
+    const testInput = { foo: "bar" };
+
+    expect(utils.identity(testInput)).toBe(testInput);
+  });
+});
+
+describe("log", () => {
+  let actualLog = console.log;
+  const mockLog = jest.fn();
+
+  beforeAll(() => {
+    console.log = mockLog;
+  });
+
+  afterAll(() => {
+    console.log = actualLog;
+  });
+
+  test("logs input passed to transform fn, then returns original value", () => {
+    const transformFn = jest.fn().mockReturnValue("return from transform");
+    const logger = utils.log(transformFn);
+
+    expect(logger("input to log")).toBe("input to log");
+    expect(transformFn).toHaveBeenCalledWith("input to log");
+    expect(mockLog).toHaveBeenCalledWith("return from transform");
+  });
+
+  test("transformFn defaults to identity", () => {
+    const logger = utils.log();
+
+    expect(logger("input to log")).toBe("input to log");
+    expect(mockLog).toHaveBeenCalledWith("input to log");
+  });
+});
+
+describe("logLater", () => {
+  let actualLog = console.log;
+  const mockLog = jest.fn();
+
+  beforeAll(() => {
+    console.log = mockLog;
+  });
+
+  beforeEach(() => {
+    jest.useFakeTimers();
+  });
+
+  afterAll(() => {
+    console.log = actualLog;
+  });
+
+  test("logs input passed to transform fn, then returns original value", () => {
+    const transformFn = jest.fn().mockReturnValue("return from transform");
+    const logger = utils.logLater(transformFn);
+
+    expect(transformFn).not.toHaveBeenCalled();
+    expect(mockLog).not.toHaveBeenCalled();
+
+    expect(logger("input to log")).toBe("input to log");
+    jest.runAllTimers();
+
+    expect(transformFn).toHaveBeenCalledWith("input to log");
+    expect(mockLog).toHaveBeenCalledWith("return from transform");
+  });
+
+  test("transformFn defaults to identity", () => {
+    const logger = utils.logLater();
+
+    expect(mockLog).not.toHaveBeenCalled();
+
+    expect(logger("input to log")).toBe("input to log");
+    jest.runAllTimers();
+
+    expect(mockLog).toHaveBeenCalledWith("input to log");
+  });
+});

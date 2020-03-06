@@ -1,24 +1,53 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<coverage generated="1583436273155" clover="3.2.0">
-  <project timestamp="1583436273155" name="All files">
-    <metrics statements="17" coveredstatements="16" conditionals="8" coveredconditionals="7" methods="4" coveredmethods="4" elements="29" coveredelements="27" complexity="0" loc="17" ncloc="17" packages="2" files="2" classes="2"/>
+<coverage generated="1583503775057" clover="3.2.0">
+  <project timestamp="1583503775057" name="All files">
+    <metrics statements="73" coveredstatements="72" conditionals="22" coveredconditionals="21" methods="35" coveredmethods="35" elements="130" coveredelements="128" complexity="0" loc="73" ncloc="73" packages="4" files="7" classes="7"/>
     <package name="src">
-      <metrics statements="9" coveredstatements="8" conditionals="6" coveredconditionals="5" methods="2" coveredmethods="2"/>
+      <metrics statements="35" coveredstatements="34" conditionals="12" coveredconditionals="11" methods="19" coveredmethods="19"/>
       <file name="testUtils.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/testUtils.ts">
         <metrics statements="9" coveredstatements="8" conditionals="6" coveredconditionals="5" methods="2" coveredmethods="2"/>
         <line num="1" count="2" type="stmt"/>
-        <line num="4" count="16" type="stmt"/>
-        <line num="6" count="26" type="stmt"/>
-        <line num="7" count="26" type="cond" truecount="2" falsecount="0"/>
-        <line num="8" count="20" type="stmt"/>
+        <line num="4" count="18" type="stmt"/>
+        <line num="6" count="32" type="stmt"/>
+        <line num="7" count="32" type="cond" truecount="2" falsecount="0"/>
+        <line num="8" count="26" type="stmt"/>
         <line num="11" count="6" type="stmt"/>
         <line num="14" count="6" type="stmt"/>
         <line num="16" count="0" type="stmt"/>
-        <line num="23" count="16" type="stmt"/>
+        <line num="23" count="18" type="stmt"/>
+      </file>
+      <file name="utils.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/utils.ts">
+        <metrics statements="26" coveredstatements="26" conditionals="6" coveredconditionals="6" methods="17" coveredmethods="17"/>
+        <line num="3" count="1" type="stmt"/>
+        <line num="7" count="1" type="stmt"/>
+        <line num="8" count="1" type="stmt"/>
+        <line num="12" count="1" type="stmt"/>
+        <line num="15" count="2" type="stmt"/>
+        <line num="16" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="17" count="1" type="stmt"/>
+        <line num="22" count="1" type="stmt"/>
+        <line num="26" count="2" type="stmt"/>
+        <line num="27" count="2" type="cond" truecount="2" falsecount="0"/>
+        <line num="28" count="1" type="stmt"/>
+        <line num="43" count="1" type="stmt"/>
+        <line num="46" count="2" type="stmt"/>
+        <line num="49" count="1" type="cond" truecount="1" falsecount="0"/>
+        <line num="50" count="2" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="53" count="2" type="stmt"/>
+        <line num="57" count="1" type="stmt"/>
+        <line num="60" count="2" type="stmt"/>
+        <line num="61" count="2" type="stmt"/>
+        <line num="62" count="2" type="stmt"/>
+        <line num="65" count="2" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="70" count="3" type="stmt"/>
+        <line num="73" count="1" type="stmt"/>
+        <line num="74" count="4" type="stmt"/>
       </file>
     </package>
     <package name="src.controllers">
-      <metrics statements="8" coveredstatements="8" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
+      <metrics statements="15" coveredstatements="15" conditionals="6" coveredconditionals="6" methods="4" coveredmethods="4"/>
       <file name="fileChanges.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/controllers/fileChanges.ts">
         <metrics statements="8" coveredstatements="8" conditionals="2" coveredconditionals="2" methods="2" coveredmethods="2"/>
         <line num="4" count="1" type="stmt"/>
@@ -28,7 +57,55 @@
         <line num="13" count="1" type="stmt"/>
         <line num="18" count="1" type="stmt"/>
         <line num="19" count="1" type="stmt"/>
-        <line num="21" count="1" type="stmt"/>
+        <line num="25" count="1" type="stmt"/>
+      </file>
+      <file name="initialTreatment.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/controllers/initialTreatment.ts">
+        <metrics statements="7" coveredstatements="7" conditionals="4" coveredconditionals="4" methods="2" coveredmethods="2"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="4" count="1" type="stmt"/>
+        <line num="11" count="2" type="stmt"/>
+        <line num="12" count="2" type="stmt"/>
+        <line num="18" count="2" type="stmt"/>
+        <line num="33" count="1" type="stmt"/>
+        <line num="37" count="3" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.eventLoop">
+      <metrics statements="19" coveredstatements="19" conditionals="4" coveredconditionals="4" methods="10" coveredmethods="10"/>
+      <file name="eventLoop.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/eventLoop/eventLoop.ts">
+        <metrics statements="19" coveredstatements="19" conditionals="4" coveredconditionals="4" methods="10" coveredmethods="10"/>
+        <line num="2" count="1" type="stmt"/>
+        <line num="34" count="6" type="stmt"/>
+        <line num="44" count="6" type="stmt"/>
+        <line num="45" count="4" type="stmt"/>
+        <line num="47" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="48" count="2" type="stmt"/>
+        <line num="49" count="2" type="stmt"/>
+        <line num="51" count="2" type="stmt"/>
+        <line num="56" count="1" type="stmt"/>
+        <line num="60" count="4" type="stmt"/>
+        <line num="62" count="4" type="cond" truecount="2" falsecount="0"/>
+        <line num="63" count="3" type="stmt"/>
+        <line num="65" count="3" type="stmt"/>
+        <line num="69" count="1" type="stmt"/>
+        <line num="71" count="3" type="stmt"/>
+        <line num="72" count="3" type="stmt"/>
+        <line num="74" count="3" type="stmt"/>
+        <line num="77" count="1" type="stmt"/>
+        <line num="81" count="1" type="stmt"/>
+      </file>
+    </package>
+    <package name="src.eventLoop.effects">
+      <metrics statements="4" coveredstatements="4" conditionals="0" coveredconditionals="0" methods="2" coveredmethods="2"/>
+      <file name="replaceText.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/eventLoop/effects/replaceText.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="9" count="2" type="stmt"/>
+        <line num="14" count="2" type="stmt"/>
+      </file>
+      <file name="showError.ts" path="/Users/valbrand/Desktop/vscode/valbrand-lily/src/eventLoop/effects/showError.ts">
+        <metrics statements="2" coveredstatements="2" conditionals="0" coveredconditionals="0" methods="1" coveredmethods="1"/>
+        <line num="5" count="1" type="stmt"/>
+        <line num="6" count="1" type="stmt"/>
       </file>
     </package>
   </project>

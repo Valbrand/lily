@@ -16,9 +16,17 @@ export default function fixFileChanges(
 
 function applyIndentMode(editor: TextEditor<any>, parinfer: ParinferEngine) {
   const textBeforeParinfer = editor.document().text();
-  const parinferResult = parinfer.indentMode(textBeforeParinfer);
+  const parinferResult = parinfer.indentMode(
+    textBeforeParinfer,
+    editor.cursorPosition(),
+    editor.currentSelection()
+  );
 
   return {
-    replaceText: replaceTextEffect(editor, parinferResult.text)
+    replaceText: replaceTextEffect(
+      editor,
+      parinferResult.text,
+      parinferResult.cursorPosition
+    )
   };
 }

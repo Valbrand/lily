@@ -3,10 +3,19 @@
 import * as vscode from "vscode";
 import { createEventRegistry } from "../../eventLoop/eventLoop";
 import * as handlers from "../../eventHandlers";
-import { vscodeTextEditor } from "./textEditor";
+import * as logic from "./logic";
 import { handleReplaceTextEffect } from "./effects/replaceText";
 import { handleShowErrorEffect } from "./effects/showError";
-import { pipe, whenDefined } from "../../utils";
+import {
+  pipe,
+  whenDefined,
+  when,
+  prop,
+  log,
+  constantFn,
+  logLater
+} from "../../utils";
+import { initialExtensionState } from "./state";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -16,17 +25,18 @@ export function activate(context: vscode.ExtensionContext) {
       test: ({ payload }) => ({ log: payload })
     },
     {
-      log: (payload: any) => {
+      log: async (payload: any) => {
         console.log(payload);
       },
       replaceText: handleReplaceTextEffect,
       showError: handleShowErrorEffect
     }
   );
+  const extensionState = initialExtensionState();
 
   if (vscode.window.activeTextEditor) {
     const handleInitialActiveTextEditor = pipe(
-      vscodeTextEditor,
+      extensionState.editor,
       makeEffectHandler(handlers.handleInitialActiveTextEditor)
     );
 
@@ -49,7 +59,7 @@ export function activate(context: vscode.ExtensionContext) {
     vscode.window.onDidChangeActiveTextEditor(
       whenDefined(
         pipe(
-          vscodeTextEditor,
+          extensionState.editor,
           makeEffectHandler(handlers.handleActiveTextEditorChange)
         )
       )
@@ -58,21 +68,46 @@ export function activate(context: vscode.ExtensionContext) {
 
   deferDisposal(
     context,
-    vscode.window.onDidChangeTextEditorSelection(event => {
-      const selectionChangeHandler = pipe(
-        vscodeTextEditor,
-        makeEffectHandler(handlers.handleSelectionChange)
-      );
-
-      selectionChangeHandler(event.textEditor);
-    })
+    vscode.window.onDidChangeTextEditorSelection(
+      when(
+        pipe(
+          log(constantFn("onDidChangeTextEditorSelection")),
+          log(),
+          logic.shouldHandleSelectionChangeEvent
+        ),
+        pipe(
+          prop("textEditor"),
+          log(),
+          logLater(constantFn("later from onDidChangeTextEditorSelection")),
+          extensionState.editor,
+          makeEffectHandler(pipe(handlers.handleSelectionChange, log()))
+        )
+      )
+    )
   );
 
   deferDisposal(
     context,
-    vscode.workspace.onDidChangeTextDocument(evt => {
-      dispatch("test", "text document changed");
-    })
+    vscode.workspace.onDidChangeTextDocument(
+      when(
+        event =>
+          !!vscode.window.activeTextEditor &&
+          logic.shouldHandleTextDocumentChangeEvent(
+            event,
+            vscode.window.activeTextEditor
+          ),
+        pipe(
+          log(constantFn("onDidChangeTextDocument")),
+          log(),
+          logLater(constantFn("later from onDidChangeTextDocument")),
+          constantFn(vscode.window.activeTextEditor),
+          extensionState.editor,
+          makeEffectHandler(
+            pipe(handlers.handleTextDocumentChange, log(), constantFn({}))
+          )
+        )
+      )
+    )
   );
 
   deferDisposal(

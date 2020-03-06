@@ -8,7 +8,7 @@ export interface EventHandlerContext<T = any> {
   payload: T;
 }
 
-type EffectHandler = (payload: any) => void;
+type EffectHandler = (payload: any) => Promise<any>;
 type EffectMap = { [effectName: string]: EffectHandler };
 export interface EffectExecutionPlan {
   [effectName: string]: any;
@@ -37,16 +37,16 @@ function buildContext<T>(payload: T): EventHandlerContext<T> {
   };
 }
 
-function runEffectExecutionPlan(
+async function runEffectExecutionPlan(
   effectMap: EffectMap,
   executionPlan: EffectExecutionPlan
 ) {
-  Object.entries(executionPlan).forEach(([effectName, effectPayload]) => {
+  Object.entries(executionPlan).forEach(async ([effectName, effectPayload]) => {
     const effectHandler: EffectHandler | undefined = effectMap[effectName];
 
     if (effectHandler !== undefined) {
       console.log(`Running ${effectName}...`);
-      effectHandler(effectPayload);
+      await effectHandler(effectPayload);
     } else {
       console.error(`unrecognized effect ${effectName}`);
     }

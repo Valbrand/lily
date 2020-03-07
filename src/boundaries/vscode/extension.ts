@@ -20,14 +20,9 @@ import { initialExtensionState } from "./state";
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  const { dispatch, makeEffectHandler } = createEventRegistry(
+  const { makeEffectHandler } = createEventRegistry(
+    {},
     {
-      test: ({ payload }) => ({ log: payload })
-    },
-    {
-      log: async (payload: any) => {
-        console.log(payload);
-      },
       replaceText: handleReplaceTextEffect,
       showError: handleShowErrorEffect
     }
@@ -42,17 +37,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     handleInitialActiveTextEditor(vscode.window.activeTextEditor);
   }
-
-  // The command has been defined in the package.json file
-  // Now provide the implementation of the command with registerCommand
-  // The commandId parameter must match the command field in package.json
-  deferDisposal(
-    context,
-    vscode.commands.registerCommand("extension.helloWorld", () => {
-      // Display a message box to the user
-      vscode.window.showWarningMessage("Hello VS Code!");
-    })
-  );
 
   deferDisposal(
     context,
@@ -100,7 +84,9 @@ export function activate(context: vscode.ExtensionContext) {
           log(constantFn("onDidChangeTextDocument")),
           log(),
           logLater(constantFn("later from onDidChangeTextDocument")),
-          constantFn(vscode.window.activeTextEditor),
+          event => {
+            return vscode.window.activeTextEditor;
+          },
           extensionState.editor,
           makeEffectHandler(
             pipe(handlers.handleTextDocumentChange, log(), constantFn({}))
@@ -108,17 +94,6 @@ export function activate(context: vscode.ExtensionContext) {
         )
       )
     )
-  );
-
-  deferDisposal(
-    context,
-    vscode.workspace.onDidOpenTextDocument(textDocument => {
-      dispatch("test", "opened text document");
-
-      if (textDocument.languageId === "clojure") {
-        dispatch("test", "is a clojure document");
-      }
-    })
   );
 }
 

@@ -1,6 +1,6 @@
 import * as vscode from "vscode";
 import { ReplaceTextEffect } from "../../../eventLoop/effects/replaceText";
-import { EditorPosition } from "../../../textEditor";
+import { Position } from "../../../models/position";
 
 export async function handleReplaceTextEffect(
   effect: ReplaceTextEffect<vscode.TextEditor>
@@ -40,14 +40,12 @@ function fullFileRange(document: vscode.TextDocument): vscode.Range {
   return document.validateRange(new vscode.Range(startPosition, endPosition));
 }
 
-function emptySelection(cursorPosition: EditorPosition): vscode.Selection {
+function emptySelection(cursorPosition: Position): vscode.Selection {
   const newCursorPosition = editorPositionToPosition(cursorPosition);
 
   return new vscode.Selection(newCursorPosition, newCursorPosition);
 }
 
-function editorPositionToPosition(
-  editorPosition: EditorPosition
-): vscode.Position {
+function editorPositionToPosition(editorPosition: Position): vscode.Position {
   return new vscode.Position(editorPosition.line, editorPosition.column);
 }

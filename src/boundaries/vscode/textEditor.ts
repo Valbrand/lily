@@ -1,11 +1,7 @@
-import {
-  TextEditor,
-  TextDocument,
-  EditorPosition,
-  EditorSelection
-} from "../../textEditor";
+import { TextEditor, TextDocument, EditorSelection } from "../../textEditor";
 import * as vscode from "vscode";
 import * as logic from "./logic";
+import { Position } from "../../models/position";
 
 function memoize<T>(fn: () => T): () => T {
   let memoized: T | undefined;
@@ -37,7 +33,7 @@ function vscodeTextDocument(document: vscode.TextDocument): TextDocument {
   };
 }
 
-function cursorPosition(editor: vscode.TextEditor): EditorPosition {
+function cursorPosition(editor: vscode.TextEditor): Position {
   return positionToEditorPosition(editor.selection.active);
 }
 
@@ -48,7 +44,7 @@ function currentSelection(editor: vscode.TextEditor): EditorSelection {
   };
 }
 
-function positionToEditorPosition(position: vscode.Position): EditorPosition {
+function positionToEditorPosition(position: vscode.Position): Position {
   return {
     line: position.line,
     column: position.character

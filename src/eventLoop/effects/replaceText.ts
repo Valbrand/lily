@@ -1,15 +1,16 @@
-import { TextEditor, EditorPosition, EditorSelection } from "../../textEditor";
+import { TextEditor } from "../../textEditor";
+import { Position } from "../../models/position";
 
 export interface ReplaceTextEffect<RawEditor = any> {
   text: string;
   editor: TextEditor<RawEditor>;
-  cursorPosition: EditorPosition;
+  cursorPosition: Position;
 }
 
 export function replaceTextEffect(
   editor: TextEditor,
   text: string,
-  cursorPosition: EditorPosition
+  cursorPosition: Position
 ): ReplaceTextEffect {
   return {
     text,

@@ -1,9 +1,10 @@
 import parinfer = require("parinfer");
 import { ParinferEngine, ParinferResult } from "../../parinfer";
-import { EditorPosition, EditorSelection } from "../../textEditor";
+import { EditorSelection } from "../../textEditor";
+import { Position } from "../../models/position";
 
 function cursorPositionToParinferOptions(
-  cursorPosition: EditorPosition
+  cursorPosition: Position
 ): Partial<parinfer.ParinferOptions> {
   return {
     cursorLine: cursorPosition.line,
@@ -19,7 +20,7 @@ function editorSelectionToParinferOptions(
 
 function indentMode(
   text: string,
-  cursorPosition: EditorPosition,
+  cursorPosition: Position,
   selection?: EditorSelection
 ): ParinferResult {
   const parinferResult = parinfer.indentMode(text, {
@@ -39,7 +40,7 @@ function indentMode(
 
 function parenMode(
   text: string,
-  cursorPosition: EditorPosition,
+  cursorPosition: Position,
   selection?: EditorSelection
 ): ParinferResult {
   const parinferResult = parinfer.parenMode(text, {

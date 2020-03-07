@@ -1,6 +1,8 @@
+import { Position } from "./models/position";
+
 export interface TextEditor<RawEditor = any> {
   document(): TextDocument;
-  cursorPosition(): EditorPosition;
+  cursorPosition(): Position;
   currentSelection(): EditorSelection;
 
   hasPendingEdit: boolean;
@@ -14,12 +16,7 @@ export interface TextDocument {
   text(): string;
 }
 
-export interface EditorPosition {
-  line: number;
-  column: number;
-}
-
 export interface EditorSelection {
-  start: EditorPosition;
-  end: EditorPosition;
+  start: Position;
+  end: Position;
 }

@@ -3,7 +3,7 @@ import {
   EffectExecutionPlan
 } from "./eventLoop/eventLoop";
 import performInitialTreatment from "./controllers/initialTreatment";
-import { TextEditor } from "./textEditor";
+import { TextEditor } from "./models/textEditor";
 import fixFileChanges from "./controllers/fileChanges";
 
 export function handleInitialActiveTextEditor({

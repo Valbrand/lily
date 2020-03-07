@@ -1,6 +1,6 @@
 import parinfer = require("parinfer");
 import { ParinferEngine, ParinferResult } from "../../parinfer";
-import { EditorSelection } from "../../textEditor";
+import { EditorSelection } from "../../models/textEditor";
 import { Position } from "../../models/position";
 
 function cursorPositionToParinferOptions(

@@ -1,6 +1,6 @@
 import { EffectExecutionPlan } from "../eventLoop/eventLoop";
 import { replaceTextEffect } from "../eventLoop/effects/replaceText";
-import { TextEditor } from "../textEditor";
+import { TextEditor } from "../models/textEditor";
 import { showErrorEffect } from "../eventLoop/effects/showError";
 import { ParinferEngine } from "../parinfer";
 

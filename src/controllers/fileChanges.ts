@@ -1,4 +1,4 @@
-import { TextEditor } from "../textEditor";
+import { TextEditor } from "../models/textEditor";
 import { ParinferEngine } from "../parinfer";
 import { EffectExecutionPlan } from "../eventLoop/eventLoop";
 import { replaceTextEffect } from "../eventLoop/effects/replaceText";

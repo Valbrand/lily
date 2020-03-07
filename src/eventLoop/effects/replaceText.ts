@@ -1,4 +1,4 @@
-import { TextEditor } from "../../textEditor";
+import { TextEditor } from "../../models/textEditor";
 import { Position } from "../../models/position";
 
 export interface ReplaceTextEffect<RawEditor = any> {

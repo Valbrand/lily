@@ -1,4 +1,8 @@
-import { TextEditor, TextDocument, EditorSelection } from "../../textEditor";
+import {
+  TextEditor,
+  TextDocument,
+  EditorSelection
+} from "../../models/textEditor";
 import * as vscode from "vscode";
 import * as logic from "./logic";
 import { Position } from "../../models/position";

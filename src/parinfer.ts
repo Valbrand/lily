@@ -1,4 +1,4 @@
-import { EditorSelection } from "./textEditor";
+import { EditorSelection } from "./models/textEditor";
 import { Position } from "./models/position";
 
 export interface ParinferResult {

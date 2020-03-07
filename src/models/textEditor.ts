@@ -1,4 +1,4 @@
-import { Position } from "./models/position";
+import { Position } from "./position";
 
 export interface TextEditor<RawEditor = any> {
   document(): TextDocument;

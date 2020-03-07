@@ -1,7 +1,7 @@
 import fixFileChanges from "./fileChanges";
 import { mockObject } from "../testUtils";
 import { ParinferEngine } from "../parinfer";
-import { TextEditor, TextDocument } from "../textEditor";
+import { TextEditor, TextDocument } from "../models/textEditor";
 
 describe("fixFileChanges", () => {
   test("replaces editor with results from parinfer indentMode when the file is valid", () => {

@@ -1,5 +1,5 @@
 import * as vscode from "vscode";
-import { TextEditor } from "../../textEditor";
+import { TextEditor } from "../../models/textEditor";
 import { vscodeTextEditor } from "./textEditor";
 
 type EditorMap = Map<vscode.TextEditor, TextEditor>;

@@ -1,11 +1,8 @@
-import {
-  TextEditor,
-  TextDocument,
-  EditorSelection
-} from "../../models/textEditor";
+import { TextEditor, EditorSelection } from "../../models/textEditor";
 import * as vscode from "vscode";
 import * as logic from "./logic";
 import { Position } from "../../models/position";
+import { TextDocument } from "../../models/textDocument";
 
 function memoize<T>(fn: () => T): () => T {
   let memoized: T | undefined;

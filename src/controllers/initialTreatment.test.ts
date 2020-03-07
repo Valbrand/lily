@@ -1,7 +1,8 @@
 import performInitialTreatment from "./initialTreatment";
 import { ParinferEngine } from "../parinfer";
 import { mockObject } from "../testUtils";
-import { TextEditor, TextDocument } from "../models/textEditor";
+import { TextEditor } from "../models/textEditor";
+import { TextDocument } from "../models/textDocument";
 
 describe("performInitialTreatment", () => {
   test("returns a replaceTextEffect with valid input", () => {

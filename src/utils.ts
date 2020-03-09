@@ -63,3 +63,13 @@ export function constantFn<T>(value: T): (...args: any[]) => T {
 export function identity<T>(value: T): T {
   return value;
 }
+
+export function memoizeUnary<T>(fn: () => T): () => T {
+  let memoized: T | undefined;
+
+  return () => {
+    if (memoized) return memoized;
+
+    return (memoized = fn());
+  };
+}

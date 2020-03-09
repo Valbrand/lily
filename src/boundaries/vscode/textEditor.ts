@@ -3,20 +3,11 @@ import * as vscode from "vscode";
 import * as logic from "./logic";
 import { Position } from "../../models/position";
 import { TextDocument } from "../../models/textDocument";
-
-function memoize<T>(fn: () => T): () => T {
-  let memoized: T | undefined;
-
-  return () => {
-    if (memoized) return memoized;
-
-    return (memoized = fn());
-  };
-}
+import { memoizeUnary } from "../../utils";
 
 export function vscodeTextEditor(editor: vscode.TextEditor): TextEditor {
   return {
-    document: memoize(() => vscodeTextDocument(editor.document)),
+    document: memoizeUnary(() => vscodeTextDocument(editor.document)),
     cursorPosition: () => cursorPosition(editor),
     currentSelection: () => currentSelection(editor),
 
@@ -26,7 +17,9 @@ export function vscodeTextEditor(editor: vscode.TextEditor): TextEditor {
   };
 }
 
-function vscodeTextDocument(document: vscode.TextDocument): TextDocument {
+export function vscodeTextDocument(
+  document: vscode.TextDocument
+): TextDocument {
   return {
     isSupported: () => logic.isDocumentSupported(document),
     fileName: () => document.fileName,

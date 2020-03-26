@@ -1,10 +1,10 @@
 import {
-  EventHandlerContext,
   EffectExecutionPlan
 } from "./eventLoop/eventLoop";
 import performInitialTreatment from "./controllers/initialTreatment";
 import { TextEditor } from "./models/textEditor";
 import fixFileChanges from "./controllers/fileChanges";
+import { EventHandlerContext } from "./extensionContext";
 
 export function handleInitialActiveTextEditor({
   payload: editor,

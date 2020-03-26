@@ -15,12 +15,17 @@
   ],
   "main": "./out/boundaries/vscode/extension.js",
   "contributes": {
-    "commands": [
-      {
-        "command": "extension.helloWorld",
-        "title": "Hello World"
+    "configuration": {
+      "title": "Lily",
+      "properties": {
+        "lily.featureFlags.bleedingEdge": {
+          "type": "boolean",
+          "description": "Enable unfinished features",
+          "default": false,
+          "scope": "resource"
+        }
       }
-    ]
+    }
   },
   "scripts": {
     "vscode:prepublish": "npm run compile",

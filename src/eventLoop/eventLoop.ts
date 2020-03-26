@@ -1,12 +1,4 @@
-import { ParinferEngine } from "../parinfer";
-import { createParinferEngine } from "../boundaries/parinfer";
-
 // types
-
-export interface EventHandlerContext<T = any> {
-  parinferEngine: ParinferEngine;
-  payload: T;
-}
 
 type EffectHandler = (payload: any) => Promise<any>;
 type EffectMap = { [effectName: string]: EffectHandler };
@@ -14,28 +6,29 @@ export interface EffectExecutionPlan {
   [effectName: string]: any;
 }
 
-type EventHandler = (context: EventHandlerContext) => EffectExecutionPlan;
-type CustomEventHandler<T> = (
-  context: EventHandlerContext<T>
+interface MinimumEventHandlerContext<T = any> {
+  payload: T;
+}
+type EventHandlerContextBuilder<ContextType extends MinimumEventHandlerContext<T>, T = any> = (
+  payload: T
+) => ContextType;
+type EventHandler<ContextType extends MinimumEventHandlerContext<T>, T = any> = (
+  context: ContextType
+) => EffectExecutionPlan;
+type CustomEventHandler<ContextType extends MinimumEventHandlerContext<T>, T = any> =(
+  context: ContextType
 ) => EffectExecutionPlan;
 type CustomEventHandlerEntrypoint<T> = (eventPayload: T) => void;
-type EventMap = { [eventName: string]: EventHandler };
+type EventMap<ContextType extends MinimumEventHandlerContext> = { [eventName: string]: EventHandler<ContextType> };
 
-interface EventRegistry {
+interface EventRegistry<ContextType extends MinimumEventHandlerContext> {
   dispatch(event: string, payload?: any): void;
   makeEffectHandler<T>(
-    eventHandler: CustomEventHandler<T>
+    eventHandler: CustomEventHandler<ContextType>
   ): CustomEventHandlerEntrypoint<T>;
 }
 
 // functions
-
-function buildContext<T>(payload: T): EventHandlerContext<T> {
-  return {
-    parinferEngine: createParinferEngine(),
-    payload
-  };
-}
 
 async function runEffectExecutionPlan(
   effectMap: EffectMap,
@@ -53,11 +46,15 @@ async function runEffectExecutionPlan(
   });
 }
 
-const dispatchEvent = (eventMap: EventMap, effectMap: EffectMap) => (
+const dispatchEvent = <ContextType extends MinimumEventHandlerContext>(
+  buildContext: EventHandlerContextBuilder<ContextType>,
+  eventMap: EventMap<ContextType>,
+  effectMap: EffectMap
+) => (
   eventName: string,
   payload?: any
 ) => {
-  const handler: EventHandler | undefined = eventMap[eventName];
+  const handler: EventHandler<ContextType> | undefined = eventMap[eventName];
 
   if (handler) {
     const effectExecPlan = handler(buildContext(payload));
@@ -66,20 +63,24 @@ const dispatchEvent = (eventMap: EventMap, effectMap: EffectMap) => (
   }
 };
 
-const makeEffectHandler = (effectMap: EffectMap) => <T>(
-  customEventHandler: CustomEventHandler<T>
-) => (payload: T) => {
+const makeEffectHandler = <ContextType extends MinimumEventHandlerContext>(
+  buildContext: EventHandlerContextBuilder<ContextType>,
+  effectMap: EffectMap
+) => (
+  customEventHandler: CustomEventHandler<ContextType>
+) => (payload: any) => {
   const effectExecPlan = customEventHandler(buildContext(payload));
 
   runEffectExecutionPlan(effectMap, effectExecPlan);
 };
 
-export function createEventRegistry(
-  eventMap: EventMap,
-  effectMap: EffectMap
-): EventRegistry {
+export function createEventRegistry<ContextType extends MinimumEventHandlerContext>(
+  eventMap: EventMap<ContextType>,
+  effectMap: EffectMap,
+  buildContext: EventHandlerContextBuilder<ContextType>
+): EventRegistry<ContextType> {
   return {
-    dispatch: dispatchEvent(eventMap, effectMap),
-    makeEffectHandler: makeEffectHandler(effectMap)
+    dispatch: dispatchEvent(buildContext, eventMap, effectMap),
+    makeEffectHandler: makeEffectHandler(buildContext, effectMap)
   };
 }

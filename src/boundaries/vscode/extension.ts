@@ -16,16 +16,19 @@ import {
   logLater
 } from "../../utils";
 import { initialExtensionState } from "./state";
+import { buildContext } from "./extensionContext";
+import { EventHandlerContext } from "../../extensionContext";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
-  const { makeEffectHandler } = createEventRegistry(
+  const { makeEffectHandler } = createEventRegistry<EventHandlerContext>(
     {},
     {
       replaceText: handleReplaceTextEffect,
       showError: handleShowErrorEffect
-    }
+    },
+    buildContext
   );
   const extensionState = initialExtensionState();
 
@@ -84,7 +87,7 @@ export function activate(context: vscode.ExtensionContext) {
           log(constantFn("onDidChangeTextDocument")),
           log(),
           logLater(constantFn("later from onDidChangeTextDocument")),
-          event => {
+          (_event: any) => {
             return vscode.window.activeTextEditor;
           },
           extensionState.editor,

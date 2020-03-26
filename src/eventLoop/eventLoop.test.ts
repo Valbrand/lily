@@ -1,4 +1,6 @@
 import * as eventLoop from "./eventLoop";
+import { EventHandlerContext } from "../extensionContext";
+
 
 describe("eventRegistry", () => {
   const eventMap = {
@@ -11,7 +13,8 @@ describe("eventRegistry", () => {
   const effectMap = {
     effectName: jest.fn()
   };
-  const eventRegistry = eventLoop.createEventRegistry(eventMap, effectMap);
+  const buildContext = (payload: any) => ({ payload })
+  const eventRegistry = eventLoop.createEventRegistry<any>(eventMap, effectMap, buildContext);
 
   describe("dispatch", () => {
     test("runs the registered event handler", () => {

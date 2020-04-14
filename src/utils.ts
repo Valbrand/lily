@@ -1,5 +1,35 @@
 type UnaryFn<In, Out> = (arg0: In) => Out;
 
+export function pipe<A, B, C>(
+  fn1: (arg0: A) => B,
+  fn2: (arg0: B) => C
+): (arg0: A) => C;
+export function pipe<A, B, C, D>(
+  fn1: (arg0: A) => B,
+  fn2: (arg0: B) => C,
+  fn3: (arg0: C) => D
+): (arg0: A) => D;
+export function pipe<A, B, C, D, E>(
+  fn1: (arg0: A) => B,
+  fn2: (arg0: B) => C,
+  fn3: (arg0: C) => D,
+  fn4: (arg0: D) => E
+): (arg0: A) => E;
+export function pipe<A, B, C, D, E, F>(
+  fn1: (arg0: A) => B,
+  fn2: (arg0: B) => C,
+  fn3: (arg0: C) => D,
+  fn4: (arg0: D) => E,
+  fn5: (arg0: E) => F
+): (arg0: A) => F;
+export function pipe<A, B, C, D, E, F, G>(
+  fn1: (arg0: A) => B,
+  fn2: (arg0: B) => C,
+  fn3: (arg0: C) => D,
+  fn4: (arg0: D) => E,
+  fn5: (arg0: E) => F,
+  fn6: (arg0: F) => G
+): (arg0: A) => G;
 export function pipe<In, Out>(
   fn1: (arg0: In) => any,
   ...fns: Function[]
@@ -9,12 +39,12 @@ export function pipe<In, Out>(
   }, fn1) as UnaryFn<In, Out>;
 }
 
-export function whenDefined<In>(
-  fn: UnaryFn<In, void>
-): UnaryFn<In | undefined, void> {
+export function whenDefined<In, Out>(
+  fn: UnaryFn<In, Out>
+): UnaryFn<In | undefined, Out | undefined> {
   return (maybeArg: In | undefined) => {
     if (maybeArg !== undefined) {
-      fn(maybeArg);
+      return fn(maybeArg);
     }
   };
 }

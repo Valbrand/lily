@@ -13,7 +13,7 @@ import {
   prop,
   log,
   constantFn,
-  logLater
+  logLater,
 } from "../../utils";
 import { initialExtensionState } from "./state";
 import { buildContext } from "./extensionContext";
@@ -22,24 +22,19 @@ import { EventHandlerContext } from "../../extensionContext";
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
+  const extensionState = initialExtensionState();
   const { makeEffectHandler } = createEventRegistry<EventHandlerContext>(
     {},
     {
       replaceText: handleReplaceTextEffect,
-      showError: handleShowErrorEffect
+      showError: handleShowErrorEffect,
     },
-    buildContext
+    buildContext(extensionState)
   );
-  const extensionState = initialExtensionState();
 
-  if (vscode.window.activeTextEditor) {
-    const handleInitialActiveTextEditor = pipe(
-      extensionState.editor,
-      makeEffectHandler(handlers.handleInitialActiveTextEditor)
-    );
-
-    handleInitialActiveTextEditor(vscode.window.activeTextEditor);
-  }
+  whenDefined(makeEffectHandler(handlers.handleInitialActiveTextEditor))(
+    vscode.window.activeTextEditor
+  );
 
   deferDisposal(
     context,
@@ -77,7 +72,7 @@ export function activate(context: vscode.ExtensionContext) {
     context,
     vscode.workspace.onDidChangeTextDocument(
       when(
-        event =>
+        (event) =>
           !!vscode.window.activeTextEditor &&
           logic.shouldHandleTextDocumentChangeEvent(
             event,
@@ -87,10 +82,7 @@ export function activate(context: vscode.ExtensionContext) {
           log(constantFn("onDidChangeTextDocument")),
           log(),
           logLater(constantFn("later from onDidChangeTextDocument")),
-          (_event: any) => {
-            return vscode.window.activeTextEditor;
-          },
-          extensionState.editor,
+          extensionState.activeEditor,
           makeEffectHandler(
             pipe(handlers.handleTextDocumentChange, log(), constantFn({}))
           )

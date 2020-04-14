@@ -1,11 +1,13 @@
 import * as vscode from "vscode";
 import { TextEditor } from "../../models/textEditor";
 import { vscodeTextEditor } from "./textEditor";
+import { whenDefined } from "../../utils";
 
 type EditorMap = Map<vscode.TextEditor, TextEditor>;
 
-interface ExtensionState {
+export interface ExtensionState {
   editor(vscodeEditor: vscode.TextEditor): TextEditor;
+  activeEditor(): TextEditor | undefined;
 }
 
 const getEditorFromEditorMap = (editorMap: EditorMap) => (
@@ -24,8 +26,11 @@ const getEditorFromEditorMap = (editorMap: EditorMap) => (
 
 export function initialExtensionState(): ExtensionState {
   const editorMap: EditorMap = new Map();
+  const editorGetter = getEditorFromEditorMap(editorMap);
 
   return {
-    editor: getEditorFromEditorMap(editorMap)
+    editor: editorGetter,
+    activeEditor: () =>
+      whenDefined(editorGetter)(vscode.window.activeTextEditor),
   };
 }

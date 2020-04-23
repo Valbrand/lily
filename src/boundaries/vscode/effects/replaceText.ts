@@ -1,6 +1,8 @@
 import * as vscode from "vscode";
 import { ReplaceTextEffect } from "../../../eventLoop/effects/replaceText";
 import { Position } from "../../../models/position";
+import xs, { Stream } from "xstream";
+import debounce from "xstream/extra/debounce";
 
 export async function handleReplaceTextEffect(
   effect: ReplaceTextEffect<vscode.TextEditor>
@@ -27,6 +29,15 @@ export async function handleReplaceTextEffect(
         : `ReplaceTextEffect discarded because no changes were detected`
     );
   }
+}
+
+export function handleReplaceTextEffectStream(
+  effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
+): Stream<any> {
+  return effect$
+    .compose(debounce(100))
+    .map((effect) => xs.fromPromise(handleReplaceTextEffect(effect)))
+    .flatten();
 }
 
 function shouldPerformEdit({ editor, text }: ReplaceTextEffect): boolean {

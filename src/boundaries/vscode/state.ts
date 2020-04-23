@@ -6,8 +6,8 @@ import { whenDefined } from "../../utils";
 type EditorMap = Map<vscode.TextEditor, TextEditor>;
 
 export interface ExtensionState {
-  editor(vscodeEditor: vscode.TextEditor): TextEditor;
-  activeEditor(): TextEditor | undefined;
+  editor(vscodeEditor: vscode.TextEditor): TextEditor<vscode.TextEditor>;
+  activeEditor(): TextEditor<vscode.TextEditor> | undefined;
 }
 
 const getEditorFromEditorMap = (editorMap: EditorMap) => (

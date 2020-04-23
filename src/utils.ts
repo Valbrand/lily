@@ -93,3 +93,7 @@ export function constantFn<T>(value: T): (...args: any[]) => T {
 export function identity<T>(value: T): T {
   return value;
 }
+
+export function isDefined<T>(arg: T | undefined): arg is T {
+  return arg !== undefined;
+}

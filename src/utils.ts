@@ -97,3 +97,16 @@ export function identity<T>(value: T): T {
 export function isDefined<T>(arg: T | undefined): arg is T {
   return arg !== undefined;
 }
+
+export function mapObject<M extends { [K: string]: V }, V, V2>(
+  original: M,
+  transform: UnaryFn<V, V2>
+): { [K2 in keyof M]: V2 } {
+  return Object.keys(original).reduce(
+    (result: Partial<{ [K2 in keyof M]: V2 }>, key: keyof M) => {
+      result[key] = transform(original[key]);
+      return result;
+    },
+    {}
+  ) as { [K2 in keyof M]: V2 };
+}

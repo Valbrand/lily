@@ -35,7 +35,7 @@ export function handleReplaceTextEffectStream(
   effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
 ): Stream<any> {
   return effect$
-    .compose(debounce(100))
+    .compose(debounce(250))
     .map((effect) => xs.fromPromise(handleReplaceTextEffect(effect)))
     .flatten();
 }

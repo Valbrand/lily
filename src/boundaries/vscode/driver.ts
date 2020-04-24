@@ -4,7 +4,14 @@ import xs, { Stream } from "xstream";
 import * as vscode from "vscode";
 import { TextEditor } from "../../models/textEditor";
 import { ExtensionState } from "./state";
-import { whenDefined, pipe, identity, log, isDefined } from "../../utils";
+import {
+  whenDefined,
+  pipe,
+  identity,
+  log,
+  isDefined,
+  mapObject,
+} from "../../utils";
 
 interface MinimumEventHandlerContext<T> {
   payload: T;
@@ -18,9 +25,7 @@ type EffectHandler<T> = (payload$: Stream<T>) => Stream<any>;
 interface EffectHandlersDefinition {
   [K: string]: EffectHandler<any>;
 }
-type EffectExecutionStreamMap<
-  EffectMapType extends EffectHandlersDefinition
-> = {
+type EffectTriggerStreamMap<EffectMapType extends EffectHandlersDefinition> = {
   [K in keyof EffectMapType]: Stream<Parameters<EffectMapType[K]>>;
 };
 type EffectExecutionPlan<EffectMapType extends EffectHandlersDefinition> = {
@@ -29,29 +34,41 @@ type EffectExecutionPlan<EffectMapType extends EffectHandlersDefinition> = {
 
 export type VsCodeDriver = Driver<Stream<any>, VsCodeDriverSource>;
 
+function effectTriggerStream<T>(effectHandler: EffectHandler<T>): Stream<T> {
+  return xs.never();
+}
+
 export function vsCodeDriver<EffectMapType extends EffectHandlersDefinition>(
   effectHandlers: EffectMapType,
   vscodeContext: vscode.ExtensionContext
 ): VsCodeDriver {
+  const effectTriggerStreamMap: EffectTriggerStreamMap<EffectMapType> = mapObject<
+    EffectMapType,
+    EffectHandler<any>,
+    Stream<any>
+  >(effectHandlers, effectTriggerStream);
+
+  Object.keys(effectHandlers).forEach((key: keyof EffectMapType) => {
+    const effectHandler = effectHandlers[key];
+    const effectTrigger$ = effectTriggerStreamMap[key];
+    effectHandler(effectTrigger$).subscribe({});
+  });
+
   function vsCodeDriverImplementation(
     sink$: Stream<EffectExecutionPlan<EffectMapType>>
   ): VsCodeDriverSource {
-    sink$
-      .map((effectExecutionPlan) => {
-        return xs
-          .from(
-            Object.keys(effectExecutionPlan).map(
-              (effectType: keyof EffectMapType) => {
-                return effectHandlers[effectType](
-                  xs.of(effectExecutionPlan[effectType])
-                );
-              }
-            )
-          )
-          .flatten();
-      })
-      .flatten()
-      .subscribe({});
+    sink$.subscribe({
+      next: (effectExecutionPlan) => {
+        Object.keys(effectExecutionPlan).forEach(
+          <K extends keyof EffectExecutionPlan<EffectMapType>>(key: K) => {
+            const effectPayload = effectExecutionPlan[key] as Parameters<
+              EffectMapType[K]
+            >;
+            effectTriggerStreamMap[key].shamefullySendNext(effectPayload);
+          }
+        );
+      },
+    });
 
     return new VsCodeDriverSource(vscodeContext);
   }

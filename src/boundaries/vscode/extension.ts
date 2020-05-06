@@ -53,27 +53,27 @@ export function activate(context: vscode.ExtensionContext) {
         )
       );
 
-    const textDocumentChange$ = vs
-      .onDidChangeTextDocument()
-      .filter(
-        (event) =>
-          isDefined(vscode.window.activeTextEditor) &&
-          logic.shouldHandleTextDocumentChangeEvent(
-            event,
-            vscode.window.activeTextEditor
-          )
-      )
-      .map(
-        pipe(
-          (_event) => extensionState.activeEditor()!,
-          contextBuilder,
-          handlers.handleTextDocumentChange
-        )
-      )
-      .mapTo({});
+    // const textDocumentChange$ = vs
+    //   .onDidChangeTextDocument()
+    //   .filter(
+    //     (event) =>
+    //       isDefined(vscode.window.activeTextEditor) &&
+    //       logic.shouldHandleTextDocumentChangeEvent(
+    //         event,
+    //         vscode.window.activeTextEditor
+    //       )
+    //   )
+    //   .map(
+    //     pipe(
+    //       (_event) => extensionState.activeEditor()!,
+    //       contextBuilder,
+    //       handlers.handleTextDocumentChange
+    //     )
+    //   )
+    //   .mapTo({});
 
     return {
-      vs: xs.merge(activeEditor$, textEditorSelection$, textDocumentChange$),
+      vs: xs.merge(activeEditor$, textEditorSelection$),
     };
   }
 

@@ -2,7 +2,6 @@ import * as vscode from "vscode";
 import { ReplaceTextEffect } from "../../../eventLoop/effects/replaceText";
 import { Position } from "../../../models/position";
 import xs, { Stream } from "xstream";
-import debounce from "xstream/extra/debounce";
 
 export async function handleReplaceTextEffect(
   effect: ReplaceTextEffect<vscode.TextEditor>
@@ -35,7 +34,6 @@ export function handleReplaceTextEffectStream(
   effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
 ): Stream<any> {
   return effect$
-    .compose(debounce(250))
     .map((effect) => xs.fromPromise(handleReplaceTextEffect(effect)))
     .flatten();
 }

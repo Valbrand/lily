@@ -35,7 +35,9 @@ type EffectExecutionPlan<EffectMapType extends EffectHandlersDefinition> = {
 export type VsCodeDriver = Driver<Stream<any>, VsCodeDriverSource>;
 
 function effectTriggerStream<T>(effectHandler: EffectHandler<T>): Stream<T> {
-  return xs.never();
+  const trigger$ = xs.never();
+  effectHandler(trigger$).subscribe({});
+  return trigger$;
 }
 
 export function vsCodeDriver<EffectMapType extends EffectHandlersDefinition>(
@@ -47,12 +49,6 @@ export function vsCodeDriver<EffectMapType extends EffectHandlersDefinition>(
     EffectHandler<any>,
     Stream<any>
   >(effectHandlers, effectTriggerStream);
-
-  Object.keys(effectHandlers).forEach((key: keyof EffectMapType) => {
-    const effectHandler = effectHandlers[key];
-    const effectTrigger$ = effectTriggerStreamMap[key];
-    effectHandler(effectTrigger$).subscribe({});
-  });
 
   function vsCodeDriverImplementation(
     sink$: Stream<EffectExecutionPlan<EffectMapType>>
@@ -79,17 +75,15 @@ export function vsCodeDriver<EffectMapType extends EffectHandlersDefinition>(
 export class VsCodeDriverSource {
   constructor(private vscodeContext: vscode.ExtensionContext) {}
 
-  public onDidChangeActiveTextEditor(): Stream<vscode.TextEditor> {
-    const activeEditor$ = xs.create<vscode.TextEditor>({
+  public onDidChangeActiveTextEditor(): Stream<vscode.TextEditor | undefined> {
+    const activeEditor$ = xs.create<vscode.TextEditor | undefined>({
       start: (producer) => {
-        if (!!vscode.window.activeTextEditor) {
-          producer.next(vscode.window.activeTextEditor);
-        }
+        producer.next(vscode.window.activeTextEditor);
 
         deferDisposal(
           this.vscodeContext,
           vscode.window.onDidChangeActiveTextEditor(
-            whenDefined((editor: vscode.TextEditor) => producer.next(editor))
+            (editor: vscode.TextEditor | undefined) => producer.next(editor)
           )
         );
       },

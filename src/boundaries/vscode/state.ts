@@ -1,9 +1,9 @@
 import * as vscode from "vscode";
 import { TextEditor } from "../../models/textEditor";
-import { vscodeTextEditor } from "./textEditor";
+import { vscodeTextEditor } from "./adapters/textEditor";
 import { whenDefined } from "../../utils";
 
-type EditorMap = Map<vscode.TextEditor, TextEditor>;
+type EditorMap = Map<vscode.TextEditor, TextEditor<vscode.TextEditor>>;
 
 export interface ExtensionState {
   editor(vscodeEditor: vscode.TextEditor): TextEditor<vscode.TextEditor>;

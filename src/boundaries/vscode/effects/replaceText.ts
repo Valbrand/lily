@@ -4,7 +4,7 @@ import { Position } from "../../../models/position";
 import xs, { Stream } from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { constantFn, log, logNow } from "../../../utils";
+import { log, logNow } from "../../../utils";
 
 const replaceTextFinishedEventEmitter = new vscode.EventEmitter<{}>();
 

@@ -3,7 +3,7 @@ import {
   TextDocumentContentChange,
 } from "../../../models/textDocumentChangeEvent";
 import * as vscode from "vscode";
-import { vscodeTextDocument } from "../textEditor";
+import { vscodeTextDocument } from "../adapters/textDocument";
 import { vscodeRange } from "./range";
 
 export function vscodeTextDocumentChangeEvent(

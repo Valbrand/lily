@@ -16,12 +16,6 @@ export function shouldHandleSelectionChangeEvent({
   );
 }
 
-function isDeletionDocumentChangeEvent(
-  event: vscode.TextDocumentContentChangeEvent
-) {
-  return event.text.length === 0;
-}
-
 export function shouldHandleTextDocumentChangeEvent(
   event: vscode.TextDocumentChangeEvent,
   editor: vscode.TextEditor
@@ -31,4 +25,10 @@ export function shouldHandleTextDocumentChangeEvent(
     editor.document === event.document &&
     every(isDeletionDocumentChangeEvent)(event.contentChanges)
   );
+}
+
+function isDeletionDocumentChangeEvent(
+  event: vscode.TextDocumentContentChangeEvent
+) {
+  return event.text.length === 0;
 }

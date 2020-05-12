@@ -1,6 +1,6 @@
 import parinfer = require("parinfer");
 import { ParinferEngine, ParinferResult } from "../../parinfer";
-import { EditorSelection } from "../../models/textEditor";
+import { TextEditorSelection } from "../../models/textEditor";
 import { Position } from "../../models/position";
 
 function cursorPositionToParinferOptions(
@@ -8,12 +8,12 @@ function cursorPositionToParinferOptions(
 ): Partial<parinfer.ParinferOptions> {
   return {
     cursorLine: cursorPosition.line,
-    cursorX: cursorPosition.column
+    cursorX: cursorPosition.column,
   };
 }
 
 function editorSelectionToParinferOptions(
-  selection: EditorSelection
+  selection: TextEditorSelection
 ): Partial<parinfer.ParinferOptions> {
   return { selectionStartLine: selection.start.line };
 }
@@ -21,11 +21,11 @@ function editorSelectionToParinferOptions(
 function indentMode(
   text: string,
   cursorPosition: Position,
-  selection?: EditorSelection
+  selection?: TextEditorSelection
 ): ParinferResult {
   const parinferResult = parinfer.indentMode(text, {
     ...cursorPositionToParinferOptions(cursorPosition),
-    ...(selection ? editorSelectionToParinferOptions(selection) : {})
+    ...(selection ? editorSelectionToParinferOptions(selection) : {}),
   });
 
   return {
@@ -33,19 +33,19 @@ function indentMode(
     success: parinferResult.success,
     cursorPosition: {
       line: parinferResult.cursorLine,
-      column: parinferResult.cursorX
-    }
+      column: parinferResult.cursorX,
+    },
   };
 }
 
 function parenMode(
   text: string,
   cursorPosition: Position,
-  selection?: EditorSelection
+  selection?: TextEditorSelection
 ): ParinferResult {
   const parinferResult = parinfer.parenMode(text, {
     ...cursorPositionToParinferOptions(cursorPosition),
-    ...(selection ? editorSelectionToParinferOptions(selection) : {})
+    ...(selection ? editorSelectionToParinferOptions(selection) : {}),
   });
 
   return {
@@ -53,14 +53,14 @@ function parenMode(
     success: parinferResult.success,
     cursorPosition: {
       line: parinferResult.cursorLine,
-      column: parinferResult.cursorX
-    }
+      column: parinferResult.cursorX,
+    },
   };
 }
 
 export function createParinferEngine(): ParinferEngine {
   return {
     indentMode,
-    parenMode
+    parenMode,
   };
 }

@@ -22,15 +22,17 @@ export function vscodeTextEditor(editor: vscode.TextEditor): TextEditor {
 
     hasPendingEdit: false,
 
-    _rawEditor: editor
+    _rawEditor: editor,
   };
 }
 
-function vscodeTextDocument(document: vscode.TextDocument): TextDocument {
+export function vscodeTextDocument(
+  document: vscode.TextDocument
+): TextDocument {
   return {
     isSupported: () => logic.isDocumentSupported(document),
     fileName: () => document.fileName,
-    text: () => document.getText()
+    text: () => document.getText(),
   };
 }
 
@@ -41,13 +43,13 @@ function cursorPosition(editor: vscode.TextEditor): Position {
 function currentSelection(editor: vscode.TextEditor): EditorSelection {
   return {
     start: positionToEditorPosition(editor.selection.start),
-    end: positionToEditorPosition(editor.selection.end)
+    end: positionToEditorPosition(editor.selection.end),
   };
 }
 
 function positionToEditorPosition(position: vscode.Position): Position {
   return {
     line: position.line,
-    column: position.character
+    column: position.character,
   };
 }

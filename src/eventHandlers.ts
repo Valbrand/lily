@@ -3,6 +3,8 @@ import performInitialTreatment from "./controllers/initialTreatment";
 import { TextEditor } from "./models/textEditor";
 import fixFileChanges from "./controllers/fileChanges";
 import { EventHandlerContext } from "./extensionContext";
+import fixContentChanges from "./controllers/fixContentChanges";
+import { TextDocumentChangeEvent } from "./models/textDocumentChangeEvent";
 
 export function handleInitialActiveTextEditor({
   activeTextEditor,
@@ -28,6 +30,7 @@ export function handleSelectionChange({
 export function handleTextDocumentChange({
   activeTextEditor,
   parinferEngine,
-}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
-  return fixFileChanges(activeTextEditor!, parinferEngine);
+  payload,
+}: EventHandlerContext<TextDocumentChangeEvent>): EffectExecutionPlan {
+  return fixContentChanges(payload, activeTextEditor!, parinferEngine);
 }

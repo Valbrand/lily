@@ -27,6 +27,6 @@ function applyIndentMode(editor: TextEditor<any>, parinfer: ParinferEngine) {
       editor,
       parinferResult.text,
       parinferResult.cursorPosition
-    )
+    ),
   };
 }

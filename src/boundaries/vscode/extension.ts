@@ -12,6 +12,7 @@ import { VsCodeDriverSource, vsCodeDriver, VsCodeDriver } from "./driver";
 
 import { run } from "@cycle/run";
 import xs from "xstream";
+import { vscodeTextDocumentChangeEvent } from "./adapters/textDocumentChangeEvent";
 
 // this method is called when your extension is activated
 // your extension is activated the very first time the command is executed
@@ -32,7 +33,6 @@ export function activate(context: vscode.ExtensionContext) {
   function main({ vs }: ExtensionSources) {
     const activeEditor$ = vs
       .onDidChangeActiveTextEditor()
-      .debug(log("active text editor"))
       .filter(isDefined)
       .debug(log("filtered active text editor"))
       .map(
@@ -45,7 +45,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     const textEditorSelection$ = vs
       .onDidChangeTextEditorSelection()
-      .debug(log("text editor selection"))
       .filter(logic.shouldHandleSelectionChangeEvent)
       .debug(log("filtered text editor selection"))
       .map(
@@ -59,8 +58,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     const textDocumentChange$ = vs
       .onDidChangeTextDocument()
-      .debug(log("text document change"))
-      .debug()
       .filter(
         (event) =>
           isDefined(vscode.window.activeTextEditor) &&
@@ -72,7 +69,7 @@ export function activate(context: vscode.ExtensionContext) {
       .debug(log("filtered text document change"))
       .map(
         pipe(
-          (_event) => extensionState.activeEditor()!,
+          vscodeTextDocumentChangeEvent,
           contextBuilder,
           handlers.handleTextDocumentChange
         )

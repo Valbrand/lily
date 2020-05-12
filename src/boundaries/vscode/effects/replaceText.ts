@@ -28,9 +28,7 @@ export async function handleReplaceTextEffect(
       });
   } else {
     logNow(
-      constantFn(
-        `ReplaceTextEffect discarded because no changes were detected`
-      ),
+      `ReplaceTextEffect discarded because no changes were detected`,
       "warn"
     );
   }

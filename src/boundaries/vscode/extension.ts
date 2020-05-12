@@ -5,7 +5,7 @@ import * as handlers from "../../eventHandlers";
 import * as logic from "./logic";
 import { handleReplaceTextEffectStream } from "./effects/replaceText";
 import { handleShowErrorEffectStream } from "./effects/showError";
-import { pipe, prop, isDefined } from "../../utils";
+import { pipe, prop, isDefined, log, constantFn } from "../../utils";
 import { initialExtensionState } from "./state";
 import { buildContext } from "./extensionContext";
 import { VsCodeDriverSource, vsCodeDriver, VsCodeDriver } from "./driver";
@@ -32,7 +32,9 @@ export function activate(context: vscode.ExtensionContext) {
   function main({ vs }: ExtensionSources) {
     const activeEditor$ = vs
       .onDidChangeActiveTextEditor()
+      .debug(log("active text editor"))
       .filter(isDefined)
+      .debug(log("filtered active text editor"))
       .map(
         pipe(
           extensionState.editor,
@@ -43,7 +45,9 @@ export function activate(context: vscode.ExtensionContext) {
 
     const textEditorSelection$ = vs
       .onDidChangeTextEditorSelection()
+      .debug(log("text editor selection"))
       .filter(logic.shouldHandleSelectionChangeEvent)
+      .debug(log("filtered text editor selection"))
       .map(
         pipe(
           prop("textEditor"),
@@ -53,27 +57,29 @@ export function activate(context: vscode.ExtensionContext) {
         )
       );
 
-    // const textDocumentChange$ = vs
-    //   .onDidChangeTextDocument()
-    //   .filter(
-    //     (event) =>
-    //       isDefined(vscode.window.activeTextEditor) &&
-    //       logic.shouldHandleTextDocumentChangeEvent(
-    //         event,
-    //         vscode.window.activeTextEditor
-    //       )
-    //   )
-    //   .map(
-    //     pipe(
-    //       (_event) => extensionState.activeEditor()!,
-    //       contextBuilder,
-    //       handlers.handleTextDocumentChange
-    //     )
-    //   )
-    //   .mapTo({});
+    const textDocumentChange$ = vs
+      .onDidChangeTextDocument()
+      .debug(log("text document change"))
+      .debug()
+      .filter(
+        (event) =>
+          isDefined(vscode.window.activeTextEditor) &&
+          logic.shouldHandleTextDocumentChangeEvent(
+            event,
+            vscode.window.activeTextEditor
+          )
+      )
+      .debug(log("filtered text document change"))
+      .map(
+        pipe(
+          (_event) => extensionState.activeEditor()!,
+          contextBuilder,
+          handlers.handleTextDocumentChange
+        )
+      );
 
     return {
-      vs: xs.merge(activeEditor$, textEditorSelection$),
+      vs: xs.merge(activeEditor$, textEditorSelection$, textDocumentChange$),
     };
   }
 

@@ -1,5 +1,9 @@
 type UnaryFn<In, Out> = (arg0: In) => Out;
 
+const IS_DEBUG_MODE = process.env.VSCODE_DEBUG_MODE === "true";
+
+export function noop(...args: any[]) {}
+
 export function pipe<A, B, C>(
   fn1: (arg0: A) => B,
   fn2: (arg0: B) => C
@@ -66,26 +70,6 @@ export function prop<T extends Object, P extends keyof T = keyof T>(
   return (inputObject: T) => inputObject[prop];
 }
 
-export function log<T>(transform: UnaryFn<T, any> = identity): UnaryFn<T, T> {
-  return (inputObject: T) => {
-    console.log(transform(inputObject));
-
-    return inputObject;
-  };
-}
-
-export function logLater<T>(
-  transform: UnaryFn<T, any> = identity
-): UnaryFn<T, T> {
-  return (inputObject: T) => {
-    setTimeout(() => {
-      console.log(transform(inputObject));
-    }, 0);
-
-    return inputObject;
-  };
-}
-
 export function constantFn<T>(value: T): (...args: any[]) => T {
   return () => value;
 }
@@ -110,3 +94,45 @@ export function mapObject<M extends { [K: string]: V }, V, V2>(
     {}
   ) as { [K2 in keyof M]: V2 };
 }
+
+// Returns true if every element in input collection
+// makes the predicate return true
+export function every<T>(
+  predicate: UnaryFn<T, boolean>
+): UnaryFn<readonly T[], boolean> {
+  return (input: readonly T[]) =>
+    input.reduce<boolean>(
+      (result, inputItem) => result && predicate(inputItem),
+      true
+    );
+}
+
+// Log fns - move later to another file
+
+type LogType = "log" | "warn" | "error";
+
+interface LogFn {
+  <T = any>(input?: string, logType?: LogType): T;
+  <T = any>(transform?: UnaryFn<T, any>, logType?: LogType): T;
+}
+
+export const log: LogFn = IS_DEBUG_MODE
+  ? <T>(
+      input: string | UnaryFn<T, any> = identity,
+      logType: LogType = "log"
+    ) => {
+      let transformFn = input instanceof Function ? input : constantFn(input);
+
+      return (inputObject: T) => {
+        console[logType](transformFn(inputObject));
+
+        return inputObject;
+      };
+    }
+  : constantFn(identity);
+
+export const logNow: (input: any, logType?: LogType) => void = IS_DEBUG_MODE
+  ? (input: any, logType: LogType = "log") => {
+      console[logType](input);
+    }
+  : noop;

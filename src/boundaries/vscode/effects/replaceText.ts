@@ -4,6 +4,7 @@ import { Position } from "../../../models/position";
 import xs, { Stream } from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import dropRepeats from "xstream/extra/dropRepeats";
+import { constantFn, log, logNow } from "../../../utils";
 
 const replaceTextFinishedEventEmitter = new vscode.EventEmitter<{}>();
 
@@ -14,18 +15,23 @@ export async function handleReplaceTextEffect(
   const document = vscodeEditor.document;
 
   if (shouldPerformEdit(effect)) {
+    logNow("applying replace text");
     await vscodeEditor
       .edit((editBuilder: vscode.TextEditorEdit) => {
         editBuilder.replace(fullFileRange(document), effect.text);
       })
       .then(() => {
         if (vscodeEditor.selection.isEmpty) {
+          logNow("Replacing selection");
           vscodeEditor.selection = emptySelection(effect.cursorPosition);
         }
       });
   } else {
-    console.warn(
-      `ReplaceTextEffect discarded because no changes were detected`
+    logNow(
+      constantFn(
+        `ReplaceTextEffect discarded because no changes were detected`
+      ),
+      "warn"
     );
   }
   replaceTextFinishedEventEmitter.fire();
@@ -55,7 +61,10 @@ function editorPositionToPosition(editorPosition: Position): vscode.Position {
 export function handleReplaceTextEffectStream(
   effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
 ): Stream<any> {
-  return preventConcurrency(effect$)
+  return effect$
+    .debug(log("replace text"))
+    .compose(preventConcurrency)
+    .debug(log("trying to apply replace text"))
     .map((effect) => xs.fromPromise(handleReplaceTextEffect(effect)))
     .flatten();
 }
@@ -80,5 +89,4 @@ const replaceTextFinished$ = xs
     },
     stop: () => {},
   })
-  .mapTo(1)
-  .fold((acc, value) => acc + value, 0);
+  .fold((acc, _) => acc + 1, 0);

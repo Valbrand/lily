@@ -1,4 +1,4 @@
-import { EditorSelection } from "./models/textEditor";
+import { TextEditorSelection } from "./models/textEditor";
 import { Position } from "./models/position";
 
 export interface ParinferResult {
@@ -11,11 +11,11 @@ export interface ParinferEngine {
   parenMode(
     text: string,
     cursorPosition: Position,
-    currentSelection: EditorSelection
+    currentSelection: TextEditorSelection
   ): ParinferResult;
   indentMode(
     text: string,
     cursorPosition: Position,
-    currentSelection: EditorSelection
+    currentSelection: TextEditorSelection
   ): ParinferResult;
 }

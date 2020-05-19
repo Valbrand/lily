@@ -1,35 +1,36 @@
-import {
-  EffectExecutionPlan
-} from "./eventLoop/eventLoop";
+import { EffectExecutionPlan } from "./eventLoop/eventLoop";
 import performInitialTreatment from "./controllers/initialTreatment";
 import { TextEditor } from "./models/textEditor";
 import fixFileChanges from "./controllers/fileChanges";
 import { EventHandlerContext } from "./extensionContext";
+import fixContentChanges from "./controllers/fixContentChanges";
+import { TextDocumentChangeEvent } from "./models/textDocumentChangeEvent";
 
 export function handleInitialActiveTextEditor({
-  payload: editor,
-  parinferEngine
-}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
-  return performInitialTreatment(editor, parinferEngine);
+  activeTextEditor,
+  parinferEngine,
+}: EventHandlerContext): EffectExecutionPlan {
+  return performInitialTreatment(activeTextEditor!, parinferEngine);
 }
 
 export function handleActiveTextEditorChange({
-  payload: editor,
-  parinferEngine
+  activeTextEditor,
+  parinferEngine,
 }: EventHandlerContext<TextEditor>): EffectExecutionPlan {
-  return performInitialTreatment(editor, parinferEngine);
+  return performInitialTreatment(activeTextEditor!, parinferEngine);
 }
 
 export function handleSelectionChange({
-  payload: editor,
-  parinferEngine
+  activeTextEditor,
+  parinferEngine,
 }: EventHandlerContext<TextEditor>): EffectExecutionPlan {
-  return fixFileChanges(editor, parinferEngine);
+  return fixFileChanges(activeTextEditor!, parinferEngine);
 }
 
 export function handleTextDocumentChange({
-  payload: editor,
-  parinferEngine
-}: EventHandlerContext<TextEditor>): EffectExecutionPlan {
-  return fixFileChanges(editor, parinferEngine);
+  activeTextEditor,
+  parinferEngine,
+  payload,
+}: EventHandlerContext<TextDocumentChangeEvent>): EffectExecutionPlan {
+  return fixContentChanges(payload, activeTextEditor!, parinferEngine);
 }

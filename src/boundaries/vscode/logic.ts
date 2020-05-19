@@ -1,4 +1,5 @@
 import * as vscode from "vscode";
+import { every } from "../../utils";
 
 const supportedLanguageIds = new Set(["clojure"]);
 
@@ -7,10 +8,9 @@ export function isDocumentSupported(document: vscode.TextDocument): boolean {
 }
 
 export function shouldHandleSelectionChangeEvent({
-  kind
+  kind,
 }: vscode.TextEditorSelectionChangeEvent): boolean {
   return (
-    kind === undefined ||
     kind === vscode.TextEditorSelectionChangeKind.Keyboard ||
     kind === vscode.TextEditorSelectionChangeKind.Mouse
   );
@@ -20,5 +20,15 @@ export function shouldHandleTextDocumentChangeEvent(
   event: vscode.TextDocumentChangeEvent,
   editor: vscode.TextEditor
 ): boolean {
-  return event.contentChanges.length > 0 && editor.document === event.document;
+  return (
+    event.contentChanges.length > 0 &&
+    editor.document === event.document &&
+    every(isDeletionDocumentChangeEvent)(event.contentChanges)
+  );
+}
+
+function isDeletionDocumentChangeEvent(
+  event: vscode.TextDocumentContentChangeEvent
+) {
+  return event.text.length === 0;
 }

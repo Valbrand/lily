@@ -10,8 +10,6 @@ export function vscodeTextEditor(editor: vscode.TextEditor): TextEditor {
     cursorPosition: () => cursorPosition(editor),
     currentSelection: () => currentSelection(editor),
 
-    status: unknownStatus(),
-
     _rawEditor: editor,
   };
 }

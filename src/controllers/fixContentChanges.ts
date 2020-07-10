@@ -1,4 +1,4 @@
-import { TextEditor } from "../models/textEditor";
+import { TextEditor, TextEditorSelection } from "../models/textEditor";
 import { ParinferEngine, ParinferResult } from "../parinfer";
 import { EffectExecutionPlan } from "../eventLoop/eventLoop";
 import { replaceTextEffect } from "../eventLoop/effects/replaceText";
@@ -28,33 +28,50 @@ function indentModeEffect(
   const textBeforeParinfer = editor.document().text();
   const parinferResult = parinfer.indentMode(
     textBeforeParinfer,
-    editor.cursorPosition(),
-    editor.currentSelection()
+    cursorPositionWithDeletionFix(documentChangeEvent, editor.cursorPosition()),
+    selectionWithDeletionFix(documentChangeEvent, editor.currentSelection())
   );
 
   return {
     replaceText: replaceTextEffect(
       editor,
       parinferResult.text,
-      newCursorPosition(documentChangeEvent, parinferResult)
+      parinferResult.cursorPosition
     ),
   };
 }
 
-function newCursorPosition(
+function cursorPositionWithDeletionFix(
   documentChangeEvent: TextDocumentChangeEvent,
-  parinferResult: ParinferResult
+  cursorPosition: Position
 ): Position {
   if (isSingleDeletion(documentChangeEvent)) {
     return {
-      line: parinferResult.cursorPosition.line,
-      column:
-        parinferResult.cursorPosition.column -
-        documentChangeEvent.changes[0].length,
+      line: cursorPosition.line,
+      column: cursorPosition.column - documentChangeEvent.changes[0].length,
     };
   }
 
-  return parinferResult.cursorPosition;
+  return cursorPosition;
+}
+
+function selectionWithDeletionFix(
+  documentChangeEvent: TextDocumentChangeEvent,
+  selection: TextEditorSelection
+): TextEditorSelection {
+  if (isSingleDeletion(documentChangeEvent)) {
+    const selectionPosition = {
+      line: selection.start.line,
+      column: selection.start.column - documentChangeEvent.changes[0].length,
+    };
+
+    return {
+      start: selectionPosition,
+      end: selectionPosition,
+    };
+  }
+
+  return selection;
 }
 
 function isSingleDeletion(

@@ -1,9 +1,5 @@
 import * as vscode from "vscode";
-import {
-  TextEditor,
-  TextEditorSelection,
-  unknownStatus,
-} from "../../../models/textEditor";
+import { TextEditor, TextEditorSelection } from "../../../models/textEditor";
 import { vscodeTextDocument } from "./textDocument";
 import { Position } from "../../../models/position";
 import { vscodePosition } from "./position";

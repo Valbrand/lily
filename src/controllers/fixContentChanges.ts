@@ -6,7 +6,7 @@ import {
   TextDocumentChangeEvent,
   isDeletionChange,
 } from "../models/textDocumentChangeEvent";
-import { Position } from "../models/position";
+import { Position, isAfter } from "../models/position";
 
 export default function fixContentChanges(
   documentChangeEvent: TextDocumentChangeEvent,
@@ -45,21 +45,27 @@ function cursorPositionWithDeletionFix(
   documentChangeEvent: TextDocumentChangeEvent,
   cursorPosition: Position
 ): Position {
-  if (isSingleDeletion(documentChangeEvent)) {
+  if (
+    isSingleDeletion(documentChangeEvent) &&
+    !isForwardDeletion(documentChangeEvent, cursorPosition)
+  ) {
     return {
       line: cursorPosition.line,
       column: cursorPosition.column - documentChangeEvent.changes[0].length,
     };
+  } else {
+    return cursorPosition;
   }
-
-  return cursorPosition;
 }
 
 function selectionWithDeletionFix(
   documentChangeEvent: TextDocumentChangeEvent,
   selection: TextEditorSelection
 ): TextEditorSelection {
-  if (isSingleDeletion(documentChangeEvent)) {
+  if (
+    isSingleDeletion(documentChangeEvent) &&
+    !isForwardDeletion(documentChangeEvent, selection.start)
+  ) {
     const selectionPosition = {
       line: selection.start.line,
       column: selection.start.column - documentChangeEvent.changes[0].length,
@@ -69,9 +75,18 @@ function selectionWithDeletionFix(
       start: selectionPosition,
       end: selectionPosition,
     };
+  } else {
+    return selection;
   }
+}
 
-  return selection;
+function isForwardDeletion(
+  documentChangeEvent: TextDocumentChangeEvent,
+  editorCursorPosition: Position
+): boolean {
+  const changeEventStartPosition = documentChangeEvent.changes[0].range.start;
+
+  return !isAfter(editorCursorPosition, changeEventStartPosition);
 }
 
 function isSingleDeletion(

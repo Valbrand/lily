@@ -26,10 +26,21 @@ function indentModeEffect(
   parinfer: ParinferEngine
 ) {
   const textBeforeParinfer = editor.document().text();
+  const isDeletionFixNecessary = shouldApplyDeletionFix(
+    documentChangeEvent,
+    editor
+  );
   const parinferResult = parinfer.indentMode(
     textBeforeParinfer,
-    cursorPositionWithDeletionFix(documentChangeEvent, editor.cursorPosition()),
-    selectionWithDeletionFix(documentChangeEvent, editor.currentSelection())
+    isDeletionFixNecessary
+      ? cursorPositionWithDeletionFix(
+          documentChangeEvent,
+          editor.cursorPosition()
+        )
+      : editor.cursorPosition(),
+    isDeletionFixNecessary
+      ? selectionWithDeletionFix(documentChangeEvent, editor.currentSelection())
+      : editor.currentSelection()
   );
 
   return {
@@ -41,43 +52,39 @@ function indentModeEffect(
   };
 }
 
+function shouldApplyDeletionFix(
+  documentChangeEvent: TextDocumentChangeEvent,
+  activeEditor: TextEditor<any>
+): boolean {
+  return (
+    isSingleDeletion(documentChangeEvent) &&
+    !isForwardDeletion(documentChangeEvent, activeEditor.cursorPosition())
+  );
+}
+
 function cursorPositionWithDeletionFix(
   documentChangeEvent: TextDocumentChangeEvent,
   cursorPosition: Position
 ): Position {
-  if (
-    isSingleDeletion(documentChangeEvent) &&
-    !isForwardDeletion(documentChangeEvent, cursorPosition)
-  ) {
-    return {
-      line: cursorPosition.line,
-      column: cursorPosition.column - documentChangeEvent.changes[0].length,
-    };
-  } else {
-    return cursorPosition;
-  }
+  return {
+    line: cursorPosition.line,
+    column: cursorPosition.column - documentChangeEvent.changes[0].length,
+  };
 }
 
 function selectionWithDeletionFix(
   documentChangeEvent: TextDocumentChangeEvent,
   selection: TextEditorSelection
 ): TextEditorSelection {
-  if (
-    isSingleDeletion(documentChangeEvent) &&
-    !isForwardDeletion(documentChangeEvent, selection.start)
-  ) {
-    const selectionPosition = {
-      line: selection.start.line,
-      column: selection.start.column - documentChangeEvent.changes[0].length,
-    };
+  const selectionPosition = {
+    line: selection.start.line,
+    column: selection.start.column - documentChangeEvent.changes[0].length,
+  };
 
-    return {
-      start: selectionPosition,
-      end: selectionPosition,
-    };
-  } else {
-    return selection;
-  }
+  return {
+    start: selectionPosition,
+    end: selectionPosition,
+  };
 }
 
 function isForwardDeletion(

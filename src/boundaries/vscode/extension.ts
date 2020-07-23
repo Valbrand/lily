@@ -5,7 +5,7 @@ import * as handlers from "../../eventHandlers";
 import * as logic from "./logic";
 import { handleReplaceTextEffectStream } from "./effects/replaceText";
 import { handleShowErrorEffectStream } from "./effects/showError";
-import { pipe, prop, isDefined, log, constantFn } from "../../utils";
+import { pipe, prop, isDefined, logTimeSync } from "../../utils";
 import { initialExtensionState } from "./state";
 import { buildContext } from "./extensionContext";
 import { VsCodeDriverSource, vsCodeDriver, VsCodeDriver } from "./driver";
@@ -34,30 +34,45 @@ export function activate(context: vscode.ExtensionContext) {
     const activeEditor$ = vs
       .onDidChangeActiveTextEditor()
       .filter(isDefined)
-      .debug(log("filtered active text editor"))
       .map(
-        pipe(
-          extensionState.editor,
-          contextBuilder,
-          handlers.handleActiveTextEditorChange
+        logTimeSync(
+          "active text editor stream",
+          pipe(
+            extensionState.editor,
+            contextBuilder,
+            handlers.handleActiveTextEditorChange
+          )
         )
       );
 
     const textEditorSelection$ = vs
       .onDidChangeTextEditorSelection()
+      // .debug(log("editor selection change"))
+      // .debug((event) => {
+      //   console.log(vscode.window.activeTextEditor?.selection);
+      //   console.log(event);
+      // })
       .filter(logic.shouldHandleSelectionChangeEvent)
-      .debug(log("filtered text editor selection"))
+      // .compose(debounce(100))
       .map(
-        pipe(
-          prop("textEditor"),
-          extensionState.editor,
-          contextBuilder,
-          handlers.handleSelectionChange
+        logTimeSync(
+          "text editor selection change stream",
+          pipe(
+            prop("textEditor"),
+            extensionState.editor,
+            contextBuilder,
+            handlers.handleSelectionChange
+          )
         )
       );
 
     const textDocumentChange$ = vs
       .onDidChangeTextDocument()
+      // .debug(log("text document change"))
+      // .debug((event) => {
+      //   console.log(vscode.window.activeTextEditor?.selection);
+      //   console.log(event);
+      // })
       .filter(
         (event) =>
           isDefined(vscode.window.activeTextEditor) &&
@@ -66,12 +81,14 @@ export function activate(context: vscode.ExtensionContext) {
             vscode.window.activeTextEditor
           )
       )
-      .debug(log("filtered text document change"))
       .map(
-        pipe(
-          vscodeTextDocumentChangeEvent,
-          contextBuilder,
-          handlers.handleTextDocumentChange
+        logTimeSync(
+          "text document change stream",
+          pipe(
+            vscodeTextDocumentChangeEvent,
+            contextBuilder,
+            handlers.handleTextDocumentChange
+          )
         )
       );
 

@@ -83,7 +83,9 @@ export class VsCodeDriverSource {
         deferDisposal(
           this.vscodeContext,
           vscode.window.onDidChangeActiveTextEditor(
-            (editor: vscode.TextEditor | undefined) => producer.next(editor)
+            (editor: vscode.TextEditor | undefined) => {
+              producer.next(editor);
+            }
           )
         );
       },
@@ -103,8 +105,9 @@ export class VsCodeDriverSource {
         deferDisposal(
           this.vscodeContext,
           vscode.window.onDidChangeTextEditorSelection(
-            (event: vscode.TextEditorSelectionChangeEvent) =>
-              producer.next(event)
+            (event: vscode.TextEditorSelectionChangeEvent) => {
+              producer.next(event);
+            }
           )
         );
       },
@@ -114,13 +117,15 @@ export class VsCodeDriverSource {
     return adapt(textEditorSelection$);
   }
 
-  public onDidChangeTextDocument(): Stream<any> {
+  public onDidChangeTextDocument(): Stream<vscode.TextDocumentChangeEvent> {
     const textDocumentChange$ = xs.create<vscode.TextDocumentChangeEvent>({
       start: (producer) => {
         deferDisposal(
           this.vscodeContext,
           vscode.workspace.onDidChangeTextDocument(
-            (event: vscode.TextDocumentChangeEvent) => producer.next(event)
+            (event: vscode.TextDocumentChangeEvent) => {
+              producer.next(event);
+            }
           )
         );
       },

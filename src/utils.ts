@@ -1,3 +1,5 @@
+import { performance } from "perf_hooks";
+
 type UnaryFn<In, Out> = (arg0: In) => Out;
 
 const IS_DEBUG_MODE = process.env.VSCODE_DEBUG_MODE === "true";
@@ -136,3 +138,163 @@ export const logNow: (input: any, logType?: LogType) => void = IS_DEBUG_MODE
       console[logType](input);
     }
   : noop;
+
+type SyncLogger = <P extends any[], R>(
+  label: string,
+  fn: (...args: P) => R
+) => (...args: P) => R;
+
+type AsyncLogger = <P extends any[], R>(
+  label: string,
+  fn: (...args: P) => Promise<R>
+) => (...args: P) => Promise<R>;
+
+let nestingLevel = 0;
+function spaces(nestingLevel: number): string {
+  let result = "";
+
+  for (let i = 0; i < nestingLevel; i++) {
+    result += "..";
+  }
+
+  return result;
+}
+
+type PerformanceLogEntry = {
+  label: string;
+  startTime: number;
+  endTime?: number;
+  children: PerformanceLogEntry[];
+};
+
+type PerformanceLogReport = {
+  label: string;
+  totalDuration: number;
+  selfDuration: number;
+  children: PerformanceLogReport[];
+};
+
+const perfLogStack: PerformanceLogEntry[] = [];
+let currentPerformanceLogContext: PerformanceLogEntry | undefined;
+
+const performanceLogEntry = (
+  label: string,
+  startTime: number
+): PerformanceLogEntry => ({
+  label,
+  startTime,
+  children: [],
+});
+
+function setActiveLogEntry(logEntry: PerformanceLogEntry) {
+  if (!!currentPerformanceLogContext) {
+    currentPerformanceLogContext.children.push(logEntry);
+  }
+
+  currentPerformanceLogContext = logEntry;
+  perfLogStack.push(logEntry);
+}
+
+function unsetActiveLogEntry() {
+  currentPerformanceLogContext = perfLogStack.pop();
+}
+
+function shouldReportLogStack(): boolean {
+  return perfLogStack.length === 0;
+}
+
+function performanceLogReport(
+  logEntry: PerformanceLogEntry
+): PerformanceLogReport {
+  const { label, startTime, endTime, children } = logEntry;
+
+  if (endTime === undefined) {
+    throw new Error(`log entry with label ${label} didn't have an endTime`);
+  }
+
+  const childrenReports = children.map(performanceLogReport);
+  const totalDuration = endTime - startTime;
+  const selfDuration =
+    totalDuration -
+    childrenReports
+      .map((report) => report?.totalDuration)
+      .reduce((result, duration) => result + duration, 0);
+
+  return {
+    label,
+    totalDuration,
+    selfDuration,
+    children: childrenReports,
+  };
+}
+
+function __performanceLogReportInTextFormat(
+  { label, totalDuration, selfDuration, children }: PerformanceLogReport,
+  nestingLevel: number
+): string {
+  return `${spaces(
+    nestingLevel
+  )}${label} took ${totalDuration}ms (self: ${selfDuration}ms)\n${children
+    .map((report) =>
+      __performanceLogReportInTextFormat(report, nestingLevel + 1)
+    )
+    .join("")}`;
+}
+
+function performanceLogReportInTextFormat(
+  report: PerformanceLogReport
+): string {
+  return __performanceLogReportInTextFormat(report, 0);
+}
+
+function reportLogEntry(logEntry: PerformanceLogEntry) {
+  process.nextTick(() => {
+    try {
+      const report = performanceLogReport(logEntry);
+      const reportStr = performanceLogReportInTextFormat(report);
+      logNow(reportStr);
+    } catch (error) {
+      logNow(error.message, "error");
+    }
+  });
+}
+
+export const logTimeSync: SyncLogger = IS_DEBUG_MODE
+  ? (label, fn) => {
+      return (...args) => {
+        const currentLogEntry = performanceLogEntry(label, performance.now());
+        setActiveLogEntry(currentLogEntry);
+
+        const result = fn(...args);
+
+        currentLogEntry.endTime = performance.now();
+
+        unsetActiveLogEntry();
+        if (shouldReportLogStack()) {
+          reportLogEntry(currentLogEntry);
+        }
+
+        return result;
+      };
+    }
+  : (_label, fn) => fn;
+
+export const logTimeAsync: AsyncLogger = IS_DEBUG_MODE
+  ? (label, fn) => {
+      return async (...args) => {
+        const currentLogEntry = performanceLogEntry(label, performance.now());
+        setActiveLogEntry(currentLogEntry);
+
+        const result = await fn(...args);
+
+        currentLogEntry.endTime = performance.now();
+
+        unsetActiveLogEntry();
+        if (shouldReportLogStack()) {
+          reportLogEntry(currentLogEntry);
+        }
+
+        return result;
+      };
+    }
+  : (_label, fn) => fn;

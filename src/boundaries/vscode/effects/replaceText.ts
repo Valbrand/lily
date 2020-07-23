@@ -4,7 +4,7 @@ import { Position } from "../../../models/position";
 import xs, { Stream } from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { log, logNow } from "../../../utils";
+import { log, logNow, logTimeAsync } from "../../../utils";
 
 const replaceTextFinishedEventEmitter = new vscode.EventEmitter<{}>();
 
@@ -15,23 +15,24 @@ export async function handleReplaceTextEffect(
   const document = vscodeEditor.document;
 
   if (shouldPerformEdit(effect)) {
-    logNow("applying replace text");
+    //logNow("applying replace text");
     await vscodeEditor
       .edit((editBuilder: vscode.TextEditorEdit) => {
         editBuilder.replace(fullFileRange(document), effect.text);
       })
       .then(() => {
         if (vscodeEditor.selection.isEmpty) {
-          logNow("Replacing selection");
+          //logNow("Replacing selection");
           vscodeEditor.selection = emptySelection(effect.cursorPosition);
         }
       });
   } else {
-    logNow(
-      `ReplaceTextEffect discarded because no changes were detected`,
-      "warn"
-    );
+    // logNow(
+    //   `ReplaceTextEffect discarded because no changes were detected`,
+    //   "warn"
+    // );
   }
+
   replaceTextFinishedEventEmitter.fire();
 }
 
@@ -59,12 +60,18 @@ function editorPositionToPosition(editorPosition: Position): vscode.Position {
 export function handleReplaceTextEffectStream(
   effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
 ): Stream<any> {
-  return effect$
-    .debug(log("replace text"))
-    .compose(preventConcurrency)
-    .debug(log("trying to apply replace text"))
-    .map((effect) => xs.fromPromise(handleReplaceTextEffect(effect)))
-    .flatten();
+  return (
+    effect$
+      //.debug(log("replace text"))
+      .compose(preventConcurrency)
+      //.debug(log("trying to apply replace text"))
+      .map((effect) =>
+        xs.fromPromise(
+          logTimeAsync("replaceText", handleReplaceTextEffect)(effect)
+        )
+      )
+      .flatten()
+  );
 }
 
 function preventConcurrency(

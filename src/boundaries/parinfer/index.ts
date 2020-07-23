@@ -2,6 +2,7 @@ import parinfer = require("parinfer");
 import { ParinferEngine, ParinferResult } from "../../parinfer";
 import { TextEditorSelection } from "../../models/textEditor";
 import { Position } from "../../models/position";
+import { logTimeSync } from "../../utils";
 
 function cursorPositionToParinferOptions(
   cursorPosition: Position
@@ -60,7 +61,7 @@ function parenMode(
 
 export function createParinferEngine(): ParinferEngine {
   return {
-    indentMode,
-    parenMode,
+    indentMode: logTimeSync("parinfer (indent)", indentMode),
+    parenMode: logTimeSync("parinfer (paren)", parenMode),
   };
 }

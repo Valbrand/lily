@@ -188,11 +188,11 @@ const performanceLogEntry = (
 
 function setActiveLogEntry(logEntry: PerformanceLogEntry) {
   if (!!currentPerformanceLogContext) {
+    perfLogStack.push(currentPerformanceLogContext);
     currentPerformanceLogContext.children.push(logEntry);
   }
 
   currentPerformanceLogContext = logEntry;
-  perfLogStack.push(logEntry);
 }
 
 function unsetActiveLogEntry() {
@@ -200,7 +200,7 @@ function unsetActiveLogEntry() {
 }
 
 function shouldReportLogStack(): boolean {
-  return perfLogStack.length === 0;
+  return currentPerformanceLogContext === undefined;
 }
 
 function performanceLogReport(

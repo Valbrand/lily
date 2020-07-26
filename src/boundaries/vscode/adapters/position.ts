@@ -7,3 +7,7 @@ export function vscodePosition(position: vscode.Position): Position {
     column: position.character,
   };
 }
+
+export function toVscodePosition(position: Position): vscode.Position {
+  return new vscode.Position(position.line, position.column);
+}

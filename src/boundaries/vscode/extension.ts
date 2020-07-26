@@ -1,5 +1,3 @@
-// The module 'vscode' contains the VS Code extensibility API
-// Import the module and reference it with the alias vscode in your code below
 import * as vscode from "vscode";
 import * as handlers from "../../eventHandlers";
 import * as logic from "./logic";
@@ -14,8 +12,6 @@ import { run } from "@cycle/run";
 import xs from "xstream";
 import { vscodeTextDocumentChangeEvent } from "./adapters/textDocumentChangeEvent";
 
-// this method is called when your extension is activated
-// your extension is activated the very first time the command is executed
 export function activate(context: vscode.ExtensionContext) {
   const extensionState = initialExtensionState();
   const contextBuilder = buildContext(extensionState);
@@ -47,13 +43,7 @@ export function activate(context: vscode.ExtensionContext) {
 
     const textEditorSelection$ = vs
       .onDidChangeTextEditorSelection()
-      // .debug(log("editor selection change"))
-      // .debug((event) => {
-      //   console.log(vscode.window.activeTextEditor?.selection);
-      //   console.log(event);
-      // })
       .filter(logic.shouldHandleSelectionChangeEvent)
-      // .compose(debounce(100))
       .map(
         logTimeSync(
           "text editor selection change stream",
@@ -68,11 +58,6 @@ export function activate(context: vscode.ExtensionContext) {
 
     const textDocumentChange$ = vs
       .onDidChangeTextDocument()
-      // .debug(log("text document change"))
-      // .debug((event) => {
-      //   console.log(vscode.window.activeTextEditor?.selection);
-      //   console.log(event);
-      // })
       .filter(
         (event) =>
           isDefined(vscode.window.activeTextEditor) &&
@@ -100,7 +85,6 @@ export function activate(context: vscode.ExtensionContext) {
   run(main, drivers);
 }
 
-// this method is called when your extension is deactivated
 export function deactivate() {}
 
 type ExtensionDrivers = {

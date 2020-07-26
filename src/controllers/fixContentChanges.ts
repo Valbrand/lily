@@ -7,6 +7,8 @@ import {
   isDeletionChange,
 } from "../models/textDocumentChangeEvent";
 import { Position, isAfter } from "../models/position";
+import { TextDocument } from "../models/textDocument";
+import { logNow, logTimeSync } from "../utils";
 
 export default function fixContentChanges(
   documentChangeEvent: TextDocumentChangeEvent,
@@ -25,7 +27,11 @@ function indentModeEffect(
   editor: TextEditor<any>,
   parinfer: ParinferEngine
 ) {
-  const textBeforeParinfer = editor.document().text();
+  const textRange = logTimeSync(
+    "top level expression range",
+    topLevelExpressionRange
+  )(documentChangeEvent.document, editor.cursorPosition());
+  const textBeforeParinfer = editor.document().textInRange(textRange);
   const isDeletionFixNecessary = shouldApplyDeletionFix(
     documentChangeEvent,
     editor
@@ -47,7 +53,8 @@ function indentModeEffect(
     replaceText: replaceTextEffect(
       editor,
       parinferResult.text,
-      parinferResult.cursorPosition
+      parinferResult.cursorPosition,
+      textRange
     ),
   };
 }
@@ -103,4 +110,59 @@ function isSingleDeletion(
     documentChangeEvent.changes.length === 1 &&
     isDeletionChange(documentChangeEvent.changes[0])
   );
+}
+
+// range experiments
+// We are always assuming below that top level expressions start at indentation level 0
+
+function topLevelExpressionStartingPosition(
+  document: TextDocument,
+  cursorPosition: Position
+): Position {
+  let lineNumberBeingChecked = cursorPosition.line;
+
+  while (
+    lineNumberBeingChecked > 0 &&
+    document
+      .lineNo(lineNumberBeingChecked)
+      .firstNonWhitespaceCharacterIndex() !== 0
+  ) {
+    lineNumberBeingChecked--;
+  }
+
+  return { line: lineNumberBeingChecked, column: 0 };
+}
+
+function topLevelExpressionEndPosition(
+  document: TextDocument,
+  cursorPosition: Position
+): Position {
+  let lineNumberBeingChecked = cursorPosition.line + 1;
+
+  while (
+    document
+      .lineNo(lineNumberBeingChecked)
+      .firstNonWhitespaceCharacterIndex() !== 0
+  ) {
+    lineNumberBeingChecked++;
+  }
+  lineNumberBeingChecked--;
+
+  return {
+    line: lineNumberBeingChecked,
+    column: document.lineNo(lineNumberBeingChecked).text().length,
+  };
+}
+
+function topLevelExpressionRange(
+  document: TextDocument,
+  cursorPosition: Position
+) {
+  const startingPosition = topLevelExpressionStartingPosition(
+    document,
+    cursorPosition
+  );
+  const endPosition = topLevelExpressionEndPosition(document, cursorPosition);
+
+  return { start: startingPosition, end: endPosition };
 }

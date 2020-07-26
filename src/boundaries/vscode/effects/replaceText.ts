@@ -4,7 +4,8 @@ import { Position } from "../../../models/position";
 import xs, { Stream } from "xstream";
 import sampleCombine from "xstream/extra/sampleCombine";
 import dropRepeats from "xstream/extra/dropRepeats";
-import { log, logNow, logTimeAsync } from "../../../utils";
+import { logTimeAsync } from "../../../utils";
+import { toVscodeRange } from "../adapters/range";
 
 const replaceTextFinishedEventEmitter = new vscode.EventEmitter<{}>();
 
@@ -15,22 +16,18 @@ export async function handleReplaceTextEffect(
   const document = vscodeEditor.document;
 
   if (shouldPerformEdit(effect)) {
-    //logNow("applying replace text");
     await vscodeEditor
       .edit((editBuilder: vscode.TextEditorEdit) => {
-        editBuilder.replace(fullFileRange(document), effect.text);
+        const range = !!effect.range
+          ? toVscodeRange(effect.range)
+          : fullFileRange(document);
+        editBuilder.replace(range, effect.text);
       })
       .then(() => {
         if (vscodeEditor.selection.isEmpty) {
-          //logNow("Replacing selection");
           vscodeEditor.selection = emptySelection(effect.cursorPosition);
         }
       });
-  } else {
-    // logNow(
-    //   `ReplaceTextEffect discarded because no changes were detected`,
-    //   "warn"
-    // );
   }
 
   replaceTextFinishedEventEmitter.fire();
@@ -60,18 +57,14 @@ function editorPositionToPosition(editorPosition: Position): vscode.Position {
 export function handleReplaceTextEffectStream(
   effect$: Stream<ReplaceTextEffect<vscode.TextEditor>>
 ): Stream<any> {
-  return (
-    effect$
-      //.debug(log("replace text"))
-      .compose(preventConcurrency)
-      //.debug(log("trying to apply replace text"))
-      .map((effect) =>
-        xs.fromPromise(
-          logTimeAsync("replaceText", handleReplaceTextEffect)(effect)
-        )
+  return effect$
+    .compose(preventConcurrency)
+    .map((effect) =>
+      xs.fromPromise(
+        logTimeAsync("replaceText", handleReplaceTextEffect)(effect)
       )
-      .flatten()
-  );
+    )
+    .flatten();
 }
 
 function preventConcurrency(

@@ -29,8 +29,6 @@ export async function handleReplaceTextEffect(
         }
       });
   }
-
-  replaceTextFinishedEventEmitter.fire();
 }
 
 function shouldPerformEdit({ editor, text }: ReplaceTextEffect): boolean {
@@ -61,7 +59,11 @@ export function handleReplaceTextEffectStream(
     .compose(preventConcurrency)
     .map((effect) =>
       xs.fromPromise(
-        logTimeAsync("replaceText", handleReplaceTextEffect)(effect)
+        logTimeAsync("replaceText", async (effect) => {
+          await handleReplaceTextEffect(effect);
+
+          replaceTextFinishedEventEmitter.fire();
+        })(effect)
       )
     )
     .flatten();

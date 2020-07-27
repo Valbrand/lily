@@ -1,16 +1,28 @@
 import * as vscode from "vscode";
 import * as handlers from "../../eventHandlers";
 import * as logic from "./logic";
-import { handleReplaceTextEffectStream } from "./effects/replaceText";
-import { handleShowErrorEffectStream } from "./effects/showError";
-import { pipe, prop, isDefined, logTimeSync } from "../../utils";
+import {
+  handleReplaceTextEffectStream,
+  handleReplaceTextEffect,
+} from "./effects/replaceText";
+import {
+  handleShowErrorEffectStream,
+  handleShowErrorEffect,
+} from "./effects/showError";
+import { pipe, prop, isDefined, logTimeSync, logTimeAsync } from "../../utils";
 import { initialExtensionState } from "./state";
 import { buildContext } from "./extensionContext";
-import { VsCodeDriverSource, vsCodeDriver, VsCodeDriver } from "./driver";
+import {
+  VsCodeDriverSource,
+  vsCodeDriver,
+  VsCodeDriver,
+  VsCodeCommandOrder,
+} from "./driver";
 
 import { run } from "@cycle/run";
 import xs from "xstream";
 import { vscodeTextDocumentChangeEvent } from "./adapters/textDocumentChangeEvent";
+import { EffectExecutionPlan } from "../../eventLoop/eventLoop";
 
 export function activate(context: vscode.ExtensionContext) {
   const extensionState = initialExtensionState();
@@ -19,9 +31,13 @@ export function activate(context: vscode.ExtensionContext) {
   const drivers: ExtensionDrivers = {
     vs: vsCodeDriver(
       {
-        replaceText: handleReplaceTextEffectStream,
-        showError: handleShowErrorEffectStream,
+        replaceText: logTimeAsync(
+          "replace text command",
+          handleReplaceTextEffect
+        ),
+        showError: handleShowErrorEffect,
       },
+      {},
       context
     ),
   };
@@ -39,7 +55,9 @@ export function activate(context: vscode.ExtensionContext) {
             handlers.handleActiveTextEditorChange
           )
         )
-      );
+      )
+      .map(pipe(effectExecutionPlanToVsCodeCommand, xs.fromArray))
+      .flatten();
 
     const textEditorSelection$ = vs
       .onDidChangeTextEditorSelection()
@@ -54,7 +72,9 @@ export function activate(context: vscode.ExtensionContext) {
             handlers.handleSelectionChange
           )
         )
-      );
+      )
+      .map(pipe(effectExecutionPlanToVsCodeCommand, xs.fromArray))
+      .flatten();
 
     const textDocumentChange$ = vs
       .onDidChangeTextDocument()
@@ -75,7 +95,9 @@ export function activate(context: vscode.ExtensionContext) {
             handlers.handleTextDocumentChange
           )
         )
-      );
+      )
+      .map(pipe(effectExecutionPlanToVsCodeCommand, xs.fromArray))
+      .flatten();
 
     return {
       vs: xs.merge(activeEditor$, textEditorSelection$, textDocumentChange$),
@@ -83,6 +105,15 @@ export function activate(context: vscode.ExtensionContext) {
   }
 
   run(main, drivers);
+}
+
+function effectExecutionPlanToVsCodeCommand(
+  effectPlan: EffectExecutionPlan
+): VsCodeCommandOrder[] {
+  return Object.keys(effectPlan).map((effectName) => [
+    effectName,
+    effectPlan[effectName],
+  ]);
 }
 
 export function deactivate() {}

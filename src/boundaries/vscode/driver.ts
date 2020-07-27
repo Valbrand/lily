@@ -13,56 +13,67 @@ import {
   mapObject,
 } from "../../utils";
 
-interface MinimumEventHandlerContext<T> {
-  payload: T;
-}
-type ContextBuilder<
-  ContextType extends MinimumEventHandlerContext<T>,
-  T = any
-> = (payload: T) => ContextType;
+export type VsCodeCommandOrder = [string, ...any[]];
+export type VsCodeDriver = Driver<
+  Stream<VsCodeCommandOrder>,
+  VsCodeDriverSource
+>;
 
-type EffectHandler<T> = (payload$: Stream<T>) => Stream<any>;
-interface EffectHandlersDefinition {
-  [K: string]: EffectHandler<any>;
-}
-type EffectTriggerStreamMap<EffectMapType extends EffectHandlersDefinition> = {
-  [K in keyof EffectMapType]: Stream<Parameters<EffectMapType[K]>>;
-};
-type EffectExecutionPlan<EffectMapType extends EffectHandlersDefinition> = {
-  [K in keyof EffectMapType]?: Parameters<EffectMapType[K]>;
+type CommandHandler = (...args: any[]) => any;
+type CustomCommandsDefinition = {
+  [commandName: string]: CommandHandler;
 };
 
-export type VsCodeDriver = Driver<Stream<any>, VsCodeDriverSource>;
+type TextEditorCommandArg =
+  | string
+  | boolean
+  | number
+  | undefined
+  | null
+  | vscode.Position
+  | vscode.Range
+  | vscode.Uri
+  | vscode.Location;
+type TextEditorCommandHandler = <Args extends TextEditorCommandArg[], Return>(
+  editor: vscode.TextEditor,
+  edit: vscode.TextEditorEdit,
+  ...args: Args
+) => Return;
+type CustomTextEditorCommandsDefinition = {
+  [commandName: string]: TextEditorCommandHandler;
+};
 
-function effectTriggerStream<T>(effectHandler: EffectHandler<T>): Stream<T> {
-  const trigger$ = xs.never();
-  effectHandler(trigger$).subscribe({});
-  return trigger$;
-}
-
-export function vsCodeDriver<EffectMapType extends EffectHandlersDefinition>(
-  effectHandlers: EffectMapType,
+export function vsCodeDriver<
+  CustomCommands extends CustomCommandsDefinition,
+  CustomTextEditorCommands extends CustomTextEditorCommandsDefinition
+>(
+  customCommands: CustomCommands,
+  customTextEditorCommands: CustomTextEditorCommands,
   vscodeContext: vscode.ExtensionContext
 ): VsCodeDriver {
-  const effectTriggerStreamMap: EffectTriggerStreamMap<EffectMapType> = mapObject<
-    EffectMapType,
-    EffectHandler<any>,
-    Stream<any>
-  >(effectHandlers, effectTriggerStream);
+  Object.keys(customCommands).forEach((commandName) => {
+    deferDisposal(
+      vscodeContext,
+      vscode.commands.registerCommand(commandName, customCommands[commandName])
+    );
+  });
+
+  Object.keys(customTextEditorCommands).forEach((commandName) => {
+    deferDisposal(
+      vscodeContext,
+      vscode.commands.registerTextEditorCommand(
+        commandName,
+        customTextEditorCommands[commandName]
+      )
+    );
+  });
 
   function vsCodeDriverImplementation(
-    sink$: Stream<EffectExecutionPlan<EffectMapType>>
+    sink$: Stream<VsCodeCommandOrder>
   ): VsCodeDriverSource {
     sink$.subscribe({
-      next: (effectExecutionPlan) => {
-        Object.keys(effectExecutionPlan).forEach(
-          <K extends keyof EffectExecutionPlan<EffectMapType>>(key: K) => {
-            const effectPayload = effectExecutionPlan[key] as Parameters<
-              EffectMapType[K]
-            >;
-            effectTriggerStreamMap[key].shamefullySendNext(effectPayload);
-          }
-        );
+      next: ([command, ...args]) => {
+        vscode.commands.executeCommand(command, ...args);
       },
     });
 

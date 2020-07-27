@@ -21,12 +21,12 @@ function fixDocumentAlignment(
           editor,
           parenRunResult.text,
           parenRunResult.cursorPosition
-        )
+        ),
       }
     : {
         showError: showErrorEffect(
           `Parinfer could not handle the file ${document.fileName()}. It probably has unbalanced parens, please fix the file.`
-        )
+        ),
       };
 }
 
